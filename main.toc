@@ -1,0 +1,74 @@
+\babel@toc {polish}{}\relax 
+\thispagestyle {empty}
+\contentsline {chapter}{Wstęp}{7}{chapter*.1}%
+\contentsline {chapter}{\numberline {1}Analiza problemu i cel projektu}{9}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Opis problemu współdzielenia obowiązków domowych}{9}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Cel i zakres aplikacji}{9}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Analiza istniejących rozwiązań}{10}{section.1.3}%
+\contentsline {subsection}{\numberline {1.3.1}Splitwise}{10}{subsection.1.3.1}%
+\contentsline {subsection}{\numberline {1.3.2}Trello / Asana}{10}{subsection.1.3.2}%
+\contentsline {subsection}{\numberline {1.3.3}OurGroceries}{10}{subsection.1.3.3}%
+\contentsline {subsection}{\numberline {1.3.4}Rozwiązania zintegrowane (np. OurHome, Cozi)}{11}{subsection.1.3.4}%
+\contentsline {section}{\numberline {1.4}Podsumowanie analizy}{11}{section.1.4}%
+\contentsline {chapter}{\numberline {2}Specyfikacja wymagań i projekt systemu}{13}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Wymagania funkcjonalne}{13}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}Moduł Użytkownika i Uwierzytelniania}{13}{subsection.2.1.1}%
+\contentsline {subsection}{\numberline {2.1.2}Moduł Domu (Home)}{13}{subsection.2.1.2}%
+\contentsline {subsection}{\numberline {2.1.3}Moduł Zadań (Tasks)}{13}{subsection.2.1.3}%
+\contentsline {subsection}{\numberline {2.1.4}Moduł Finansowy (Bills)}{14}{subsection.2.1.4}%
+\contentsline {subsection}{\numberline {2.1.5}Moduł Zakupów (Shopping)}{14}{subsection.2.1.5}%
+\contentsline {subsection}{\numberline {2.1.6}Moduł Ankiet (Polls)}{14}{subsection.2.1.6}%
+\contentsline {section}{\numberline {2.2}Wymagania niefunkcjonalne}{14}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Projekt systemu}{15}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}Architektura klient-serwer}{15}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}Projekt bazy danych PostgreSQL}{16}{subsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.3.3}Diagram ERD}{16}{subsection.2.3.3}%
+\contentsline {subsection}{\numberline {2.3.4}Modele GORM i relacje}{17}{subsection.2.3.4}%
+\contentsline {chapter}{\numberline {3}Wybór technologii}{19}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Backend — Go, GORM, PostgreSQL, Chi Router}{19}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Uzasadnienie wyboru Go}{19}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}Framework i biblioteki backendowe}{20}{subsection.3.1.2}%
+\contentsline {section}{\numberline {3.2}Frontend — React Native, Expo, TypeScript}{20}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Charakterystyka React Native}{20}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}Platforma Expo}{21}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}Zarządzanie stanem i komunikacja z API}{21}{subsection.3.2.3}%
+\contentsline {section}{\numberline {3.3}Integracja backend–frontend (REST API)}{21}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Testy jednostkowe i integracyjne w Go}{22}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Podsumowanie}{22}{section.3.5}%
+\contentsline {chapter}{\numberline {4}Implementacja systemu}{23}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Struktura projektu backend}{23}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Endpoints API i routing w Chi}{24}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}Dokumentacja API (Swagger)}{24}{subsection.4.2.1}%
+\contentsline {section}{\numberline {4.3}Modele danych i migracje}{24}{section.4.3}%
+\contentsline {section}{\numberline {4.4}System autoryzacji i JWT}{25}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Obsługa błędów i walidacja danych}{26}{section.4.5}%
+\contentsline {section}{\numberline {4.6}Integracja z OCR dla rachunków}{26}{section.4.6}%
+\contentsline {section}{\numberline {4.7}Struktura projektu frontend}{27}{section.4.7}%
+\contentsline {section}{\numberline {4.8}Interfejs użytkownika (UI) - Prezentacja aplikacji}{27}{section.4.8}%
+\contentsline {subsection}{\numberline {4.8.1}Ekran logowania i rejestracji}{27}{subsection.4.8.1}%
+\contentsline {subsection}{\numberline {4.8.2}Pulpit główny (Dashboard)}{27}{subsection.4.8.2}%
+\contentsline {subsection}{\numberline {4.8.3}Zarządzanie zadaniami}{28}{subsection.4.8.3}%
+\contentsline {subsection}{\numberline {4.8.4}Skanowanie rachunków (OCR)}{28}{subsection.4.8.4}%
+\contentsline {section}{\numberline {4.9}Wybrane fragmenty kodu frontendowego}{28}{section.4.9}%
+\contentsline {chapter}{\numberline {5}Badania i testy systemu}{31}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Scenariusze testowe}{31}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}Scenariusz 1: Konfiguracja nowego gospodarstwa domowego}{31}{subsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.1.2}Scenariusz 2: Dodawanie i rozliczanie rachunku z OCR}{31}{subsection.5.1.2}%
+\contentsline {section}{\numberline {5.2}Testy funkcjonalne backendu}{31}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Testy interfejsu mobilnego}{32}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Wyniki i wnioski z testów}{32}{section.5.4}%
+\contentsline {chapter}{\numberline {6}Podsumowanie i wnioski}{33}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Realizacja celów pracy}{33}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Wnioski z realizacji projektu}{33}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Kierunki dalszego rozwoju}{34}{section.6.3}%
+\contentsline {chapter}{Podsumowanie}{33}{section.5.4}%
+\contentsline {chapter}{\leavevmode {\color {blueZUT}Spis literatury}}{35}{chapter*.10}%
+\contentsline {section}{Książki}{35}{section*.11}%
+\contentsline {section}{Artykuły}{35}{section*.12}%
+\contentsline {section}{Źródła internetowe i inne}{35}{section*.13}%
+\contentsline {chapter}{\numberline {A}Instrukcja instalacji i uruchomienia}{37}{appendix.A}%
+\contentsline {section}{\numberline {A.1}Wymagania wstępne}{37}{section.A.1}%
+\contentsline {section}{\numberline {A.2}Uruchomienie serwera (Backend)}{37}{section.A.2}%
+\contentsline {section}{\numberline {A.3}Uruchomienie aplikacji mobilnej (Frontend)}{37}{section.A.3}%
+\contentsline {section}{\numberline {A.4}Konfiguracja zmiennych środowiskowych}{38}{section.A.4}%
+\contentsfinish 

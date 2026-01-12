@@ -1,0 +1,70 @@
+\chapter{Analiza problemu i cel projektu}
+\label{rozdzial1}
+
+Wspólne mieszkanie, czy to w gronie rodziny, czy ze współlokatorami, wiąże się z koniecznością koordynacji wielu aspektów życia codziennego. Rozdział ten poświęcony jest analizie problemów związanych z zarządzaniem gospodarstwem domowym, zdefiniowaniu celu projektowanej aplikacji oraz przeglądowi istniejących na rynku rozwiązań.
+
+\section{Opis problemu współdzielenia obowiązków domowych}
+
+Zarządzanie domem to złożony proces, na który składa się szereg powtarzalnych czynności oraz decyzji podejmowanych przez grupę osób. Do najczęstszych problemów, z jakimi borykają się domownicy, należą:
+
+\begin{itemize}
+    \item \textbf{Niejasny podział obowiązków:} Brak precyzyjnego przypisania zadań (np. sprzątanie łazienki, wynoszenie śmieci) prowadzi do sytuacji, w których obowiązki są zaniedbywane lub wykonywane ciągle przez te same osoby, co rodzi frustrację i konflikty.
+    \item \textbf{Problemy z rozliczeniami finansowymi:} Wspólne wydatki na czynsz, media czy zakupy spożywcze wymagają sprawiedliwego podziału kosztów. Ręczne spisywanie wydatków jest uciążliwe i podatne na błędy, a brak terminowych spłat między współlokatorami zaburza płynność finansową.
+    \item \textbf{Dublowanie zakupów lub braki w zapasach:} Brak zsynchronizowanej listy zakupów skutkuje kupowaniem niepotrzebnych produktów lub – przeciwnie – zapominaniem o artykułach pierwszej potrzeby.
+    \item \textbf{Trudności w komunikacji i podejmowaniu decyzji:} Ustalenia dotyczące wspólnych spraw (np. wybór dostawcy internetu, planowanie posiłków) często giną w natłoku wiadomości na komunikatorach, co utrudnia osiągnięcie konsensusu.
+\end{itemize}
+
+Brak zorganizowanego systemu wsparcia tych procesów obciąża domowników tzw. ,,obciążeniem mentalnym'' (ang. \textit{mental load}), polegającym na konieczności ciągłego pamiętania o terminach i zobowiązaniach.
+
+\section{Cel i zakres aplikacji}
+
+Głównym celem projektu jest stworzenie aplikacji mobilnej ,,Household Manager'', która zintegruje kluczowe funkcjonalności niezbędne do sprawnego zarządzania domem w jednym, intuicyjnym interfejsie. System ma za zadanie zminimalizować ryzyko konfliktów poprzez zapewnienie transparentności działań i automatyzację powtarzalnych czynności.
+
+Zakres funkcjonalny aplikacji obejmuje:
+\begin{enumerate}
+    \item \textbf{Zarządzanie domami i użytkownikami:} Możliwość tworzenia wielu wirtualnych ,,domów'', zapraszania użytkowników poprzez kody lub linki oraz zarządzanie ich uprawnieniami.
+    \item \textbf{System zadań (Tasks):} Tworzenie, przypisywanie i śledzenie statusu prac domowych.
+    \item \textbf{Moduł finansowy (Bills):} Rejestrowanie rachunków, podział kosztów (równy lub według wag), śledzenie statusu płatności. Istotnym elementem jest integracja z mechanizmem OCR (Optical Character Recognition) pozwalającym na automatyczne wprowadzanie danych z fizycznych rachunków i faktur.
+    \item \textbf{Listy zakupów (Shopping Lists):} Współdzielone listy produktów z aktualizacją w czasie rzeczywistym, co pozwala na dodawanie i odhaczanie pozycji przez wszystkich domowników.
+    \item \textbf{System ankiet (Polls):} Narzędzie do demokratycznego podejmowania decyzji grupowych.
+    \item \textbf{Powiadomienia:} System alertów przypominających o nadchodzących terminach płatności czy przydzielonych zadaniach.
+\end{enumerate}
+
+Aplikacja jest kierowana głównie do osób młodych, studentów wynajmujących wspólnie mieszkania oraz nowoczesnych rodzin, dla których smartfon jest naturalnym narzędziem organizacji życia.
+
+\section{Analiza istniejących rozwiązań}
+
+Na rynku dostępnych jest wiele narzędzi wspierających organizację, jednak większość z nich skupia się na wąskich dziedzinach lub jest adaptacją narzędzi biznesowych.
+
+\subsection{Splitwise}
+Splitwise to popularna aplikacja do dzielenia wydatków. Doskonale radzi sobie z matematyką podziału kosztów i upraszczaniem długów.
+\begin{itemize}
+    \item \textbf{Zalety:} Rozbudowane opcje podziału kosztów, obsługa wielu walut.
+    \item \textbf{Wady:} Brak funkcji zarządzania zadaniami domowymi, listami zakupów czy komunikacji grupowej niezwiązanej z finansami.
+\end{itemize}
+
+\subsection{Trello / Asana}
+Narzędzia typu Kanban, popularne w zarządzaniu projektami w IT.
+\begin{itemize}
+    \item \textbf{Zalety:} Elastyczność, możliwość tworzenia dowolnych tablic i list zadań.
+    \item \textbf{Wady:} Zbyt skomplikowane do prostych zastosowań domowych, brak dedykowanych funkcji finansowych (np. podział rachunków), interfejs nastawiony na workflow biznesowy.
+\end{itemize}
+
+\subsection{OurGroceries}
+Aplikacja dedykowana listom zakupów.
+\begin{itemize}
+    \item \textbf{Zalety:} Prosta obsługa, synchronizacja w czasie rzeczywistym.
+    \item \textbf{Wady:} Ograniczona tylko do zakupów, przestarzały interfejs użytkownika (UI), brak integracji z finansami i zadaniami.
+\end{itemize}
+
+\subsection{Rozwiązania zintegrowane (np. OurHome, Cozi)}
+Istnieją aplikacje próbujące łączyć te funkcje, jednak często borykają się z problemami:
+\begin{itemize}
+    \item Część z nich jest płatna w modelu subskrypcyjnym, co zniechęca studentów.
+    \item Wiele projektów nie jest już rozwijanych i posiada przestarzały design.
+    \item Rzadko oferują zaawansowane funkcje jak skanowanie rachunków (OCR).
+\end{itemize}
+
+\section{Podsumowanie analizy}
+
+Analiza rynku wskazuje na brak darmowego, nowoczesnego i kompleksowego rozwiązania, które łączyłoby zarządzanie finansami (z wykorzystaniem OCR), zadaniami i zakupami w jednej aplikacji o wysokiej jakości interfejsu (UX/UI). Projektowany system ,,Household Manager'' ma na celu wypełnienie tej luki, oferując użytkownikom narzędzie typu ,,wszystko w jednym'', dostosowane do współczesnych standardów aplikacji mobilnych.

@@ -1,0 +1,94 @@
+\chapter{Wybór technologii}
+\label{rozdzial3}
+
+Wybór odpowiednich technologii jest kluczowym etapem procesu wytwarzania oprogramowania, mającym bezpośredni wpływ na wydajność, skalowalność, bezpieczeństwo oraz łatwość późniejszego utrzymania systemu (maintainability). Decyzje podjęte na tym etapie determinują szybkość procesu deweloperskiego oraz komfort pracy programistów. W niniejszym rozdziale przedstawiono szczegółową charakterystykę stosu technologicznego (tech stack) wykorzystanego do realizacji projektu ,,Household Manager''.
+
+\section{Backend — Go, GORM, PostgreSQL, Chi Router}
+
+Warstwa serwerowa (backend) stanowi mózg aplikacji, odpowiadający za logikę biznesową, przetwarzanie danych oraz komunikację z bazą danych. Do jej implementacji wybrano język \textbf{Go} (znany również jako Golang).
+
+\subsection{Uzasadnienie wyboru Go}
+
+Język Go został stworzony w firmie Google w 2007 roku przez Roberta Griesemera, Roba Pike'a i Kena Thompsona. Jego pierwsza stabilna wersja ukazała się w 2012 roku. Go powstał jako odpowiedź na problemy związane z zarządzaniem dużymi bazami kodu, długim czasem kompilacji oraz trudnościami w pisaniu wydajnego kodu współbieżnego w starszych językach, takich jak C++ czy Java.
+
+Główne powody wyboru Go do tego projektu to:
+
+\begin{enumerate}
+    \item \textbf{Wydajność kompilowana:} Go jest językiem kompilowanym bezpośrednio do kodu maszynowego, co sprawia, że aplikacje napisane w Go są znacznie szybsze niż te uruchamiane w środowiskach interpretowanych (jak Python czy JavaScript/Node.js). Nie wymaga maszyny wirtualnej (JVM), co przekłada się na mniejsze zużycie pamięci RAM i szybszy start aplikacji.
+    
+    \item \textbf{Statyczne typowanie:} Silny system typów pomaga wykrywać błędy już na etapie kompilacji, zanim kod trafi na produkcję. W przeciwieństwie do języków dynamicznych, programista ma pewność, że zmienna zadeklarowana jako liczba całkowita zawsze nią będzie, co zwiększa stabilność systemu.
+    
+    \item \textbf{Współbieżność (Concurrency):} Go posiada unikalny model współbieżności oparty na tzw. \textit{goroutines} i kanałach (\textit{channels}). Goroutine to "lekki wątek", zarządzany przez runtime języka, a nie przez system operacyjny. Uruchomienie tysięcy goroutines wymaga ułamka zasobów potrzebnych dla tradycyjnych wątków systemowych. W kontekście serwera HTTP oznacza to możliwość jednoczesnej obsługi ogromnej liczby zapytań od użytkowników przy minimalnym narzucie sprzętowym.
+    
+    \item \textbf{Prostota i czytelność:} Składnia Go jest minimalistyczna (brak klas, dziedziczenia w tradycyjnym sensie, skomplikowanych meta-programowania). Wymusza to pisanie prostego, czytelnego kodu, który jest łatwy do zrozumienia dla nowych członków zespołu. Sformatowany kod narzędziem \texttt{gofmt} wygląda zawsze tak samo, co eliminuje spory o styl kodowania.
+\end{enumerate}
+
+W porównaniu do popularnego Node.js, Go oferuje lepszą wydajność obliczeniową (istotne np. przy przetwarzaniu obrazów w module OCR) oraz stabilniejszy ekosystem bibliotek standardowych.
+
+\subsection{Framework i biblioteki backendowe}
+
+W ekosystemie Go panuje tendencja do unikania "kobyłowatych" frameworków typu "wszystko w jednym" (jak Django w Pythonie czy Spring w Javie) na rzecz komponowania aplikacji z mniejszych, wyspecjalizowanych bibliotek. W projekcie wykorzystano:
+
+\begin{itemize}
+    \item \textbf{Chi Router:}
+    Chi to lekki, szybki i idiomatyczny router HTTP dla Go. Jego główną zaletą jest pełna kompatybilność ze standardowym interfejsem \texttt{net/http}. Chi nie narzuca struktury aplikacji, ale oferuje potężny system \textit{middleware} (oprogramowania pośredniczącego). Middleware w Chi pozwala na łatwe "opinanie" handlerów dodatkową logiką, taką jak logowanie żądań, obsługa CORS, kompresja GZIP czy weryfikacja tokenów JWT, w sposób deklaratywny i czytelny.
+    
+    \item \textbf{GORM (Go Object Relational Mapping):}
+    Jest to najpopularniejsza biblioteka ORM dla Go. Umożliwia ona pracę z bazą danych przy użyciu obiektów (struktur), a nie surowego SQL. GORM automatyzuje wiele powtarzalnych czynności: mapowanie wyników zapytań na struktury, obsługę transakcji, a także zarządzanie relacjami (one-to-one, one-to-many, many-to-many). Dzięki mechanizmowi \textit{Hooks}, GORM pozwala również na wykonywanie akcji przed lub po zapisie danych (np. automatyczne haszowanie hasła przed zapisem użytkownika).
+    
+    \item \textbf{Gosseract:}
+    Jest to wrapper (interfejs) dla języka Go do popularnego silnika OCR Tesseract, rozwijanego przez Google. Tesseract wykorzystuje sieci neuronowe (LSTM - Long Short-Term Memory) do rozpoznawania tekstu na obrazach. Biblioteka Gosseract umożliwia łatwe przekazanie obrazu (z pliku lub bufora pamięci) do silnika C++ Tesseracta i odebranie wynikowego tekstu, który następnie jest parsowany przez logikę aplikacji w celu znalezienia kwot i dat na rachunkach.
+\end{itemize}
+
+\section{Frontend — React Native, Expo, TypeScript}
+
+Warstwa kliencka (aplikacja mobilna) została zrealizowana w technologii \textbf{React Native}, która umożliwia tworzenie natywnych aplikacji na systemy Android i iOS przy użyciu języka JavaScript/TypeScript i biblioteki React.
+
+\subsection{Charakterystyka React Native}
+
+React Native, stworzony przez Facebooka (Meta), różni się od rozwiązań hybrydowych (jak Ionic czy Cordova) tym, że nie renderuje interfejsu w komponencie WebView (przeglądarce internetowej). Zamiast tego, kod JavaScript komunikuje się z natywnym API platformy poprzez tzw. "Most" (Bridge) lub – w nowszej architekturze – poprzez JSI (JavaScript Interface).
+Dzięki temu, komponenty używane w kodzie (np. \texttt{<View>}, \texttt{<Text>}) są tłumaczone na natywne widoki systemowe (\texttt{android.view.View}, \texttt{UIView}). Zapewnia to wydajność i odczucia z użytkowania (Look and Feel) zbliżone do aplikacji pisanych w Javie czy Swifcie, przy zachowaniu wspólnego kodu dla obu platform (tzw. \textit{Code Sharing} na poziomie 90-95\%).
+
+Wykorzystanie składni JSX (JavaScript XML) pozwala na deklaratywne tworzenie interfejsu użytkownika, co znacznie ułatwia budowanie skomplikowanych widoków z mniejszych, reużywalnych komponentów.
+
+\subsection{Platforma Expo}
+
+Projekt wykorzystuje platformę \textbf{Expo} – zestaw narzędzi i usług zbudowanych wokół React Native. Decyzja o użyciu Expo zamiast "czystego" React Native CLI (Bare Workflow) wynika z kilku korzyści:
+\begin{itemize}
+    \item \textbf{Szybki start i konfiguracja:} Expo eliminuje konieczność ręcznej konfiguracji środowiska Android Studio i Xcode na początku projektu.
+    \item \textbf{Expo Go:} Możliwość natychmiastowego testowania aplikacji na fizycznym urządzeniu poprzez zeskanowanie kodu QR, bez konieczności kompilacji pliku .apk/.ipa przy każdej zmianie.
+    \item \textbf{Dostęp do natywnego API:} Expo dostarcza gotowe, przetestowane moduły (SDK) do obsługi aparatu, systemu plików, powiadomień Push, lokalizacji czy sensorów, co przyspiesza development.
+    \item \textbf{EAS (Expo Application Services):} Ułatwia proces budowania i publikowania aplikacji w sklepach Google Play i App Store w chmurze, bez obciążania lokalnego komputera.
+\end{itemize}
+
+\subsection{Zarządzanie stanem i komunikacja z API}
+
+W nowoczesnych aplikacjach frontendowych kluczowe jest efektywne zarządzanie stanem (danymi, które zmieniają się w czasie).
+
+\begin{itemize}
+    \item \textbf{Zustand:}
+    Do zarządzania stanem globalnym wybrano bibliotekę Zustand. Jest ona znacznie lżejsza i prostsza w obsłudze niż popularny Redux. Redux wymaga dużej ilości kodu "boilerplate" (akcje, reducery, types, middleware), co w mniejszych i średnich projektach bywa uciążliwe. Zustand opiera się na prostych hookach i nie wymaga owijania całej aplikacji w \textit{Provider}. Pozwala to na łatwy dostęp do danych (np. profilu zalogowanego użytkownika) z dowolnego miejsca w aplikacji.
+    
+    \item \textbf{Axios:}
+    Do komunikacji z API RESTowym wykorzystano klienta Axios. Jest to biblioteka oparta na obietnicach (Promises), która automatycznie transformuje dane do formatu JSON, obsługuje nagłówki (np. dodawanie tokena autoryzacyjnego) oraz zapewnia lepszą obsługę błędów niż wbudowana w przeglądarki funkcja \texttt{fetch}.
+\end{itemize}
+
+\section{Integracja backend–frontend (REST API)}
+
+Komunikacja między aplikacją mobilną a serwerem odbywa się zgodnie z zasadami architektury \textbf{REST} (Representational State Transfer).
+Główne założenia REST spełnione w projekcie:
+\begin{itemize}
+    \item \textbf{Bezstanowość (Stateless):} Każde żądanie HTTP zawiera wszystkie informacje niezbędne do jego obsłużenia (np. token autoryzacyjny). Serwer nie przechowuje stanu sesji użytkownika między zapytaniami.
+    \item \textbf{Jednolity interfejs:} Zasoby są identyfikowane przez adresy URL (np. \texttt{/api/homes}), a operacje na nich wykonywane są za pomocą standardowych metod HTTP (GET, POST, PUT, DELETE).
+    \item \textbf{Format danych:} Wymiana danych odbywa się w lekkim formacie JSON, który jest natywnie wspierany zarówno przez JavaScript (Frontend), jak i biblioteki Go (Backend).
+\end{itemize}
+
+Wybrano REST zamiast GraphQL ze względu na prostotę implementacji, łatwość cachowania zapytań HTTP oraz jasny podział odpowiedzialności.
+
+\section{Testy jednostkowe i integracyjne w Go}
+
+Jakość kodu serwerowego jest weryfikowana za pomocą testów. Wykorzystano bibliotekę \textbf{Testify}, która rozszerza standardowy pakiet \texttt{testing} o asercje (np. \texttt{assert.Equal}, \texttt{assert.Nil}) oraz narzędzia do mockowania zależności. Testy obejmują kluczowe elementy logiki biznesowej oraz handlery HTTP.
+
+\section{Podsumowanie}
+
+Dobór technologii w projekcie ,,Household Manager'' podyktowany był chęcią stworzenia nowoczesnego, skalowalnego i łatwego w utrzymaniu systemu. Połączenie wydajnego backendu w Go z elastycznym frontendem w React Native stanowi solidną podstawę dla aplikacji użytkowej.

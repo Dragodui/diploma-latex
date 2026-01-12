@@ -1,0 +1,39 @@
+\chapter{Podsumowanie i wnioski}
+\label{rozdzial6}
+
+Celem niniejszej pracy inżynierskiej było zaprojektowanie i zaimplementowanie systemu wspomagającego zarządzanie gospodarstwem domowym. Osiągnięto to poprzez stworzenie aplikacji mobilnej ,,Household Manager'' oraz dedykowanego serwera API.
+
+\section{Realizacja celów pracy}
+
+Wszystkie główne założenia projektowe zostały zrealizowane. Powstała aplikacja umożliwia:
+\begin{itemize}
+    \item Tworzenie grup użytkowników (domów) i zarządzanie ich członkami.
+    \item Ewidencjonowanie i przydzielanie zadań domowych.
+    \item Transparentne zarządzanie finansami i rozliczanie wspólnych wydatków.
+    \item Automatyzację wprowadzania danych z rachunków dzięki technologii OCR.
+    \item Wspólne planowanie zakupów i demokratyczne podejmowanie decyzji poprzez ankiety.
+\end{itemize}
+
+Wykorzystanie nowoczesnych technologii, takich jak język Go na backendzie oraz React Native na frontendzie, pozwoliło na stworzenie wydajnego i skalowalnego rozwiązania, działającego na dwóch najpopularniejszych platformach mobilnych (Android i iOS).
+
+\section{Wnioski z realizacji projektu}
+
+Podczas realizacji projektu wyciągnięto następujące wnioski:
+\begin{itemize}
+    \item Architektura mikroserwisowa (lub modularny monolit w kontenerach Docker) znacząco ułatwia wdrażanie i skalowanie aplikacji.
+    \item Biblioteka GORM znacznie przyspiesza pracę z bazą danych, jednak w przypadku bardzo skomplikowanych zapytań SQL konieczna jest znajomość natywnego języka zapytań.
+    \item Technologia Expo w ekosystemie React Native jest dojrzałym rozwiązaniem, które pozwala na szybkie prototypowanie i budowanie produkcyjnych aplikacji bez konieczności głębokiej ingerencji w kod natywny (Java/Swift).
+    \item Integracja z systemami OCR jest wyzwaniem ze względu na różnorodność formatów paragonów i jakość zdjęć. Wymaga to implementacji mechanizmów walidacji i korekty danych przez użytkownika.
+\end{itemize}
+
+\section{Kierunki dalszego rozwoju}
+
+System posiada potencjał do dalszej rozbudowy. Możliwe kierunki rozwoju to:
+\begin{enumerate}
+    \item \textbf{Wersja przeglądarkowa (Web):} Stworzenie panelu administracyjnego dostępnego przez przeglądarkę internetową.
+    \item \textbf{Integracja z bankowością (Open Banking):} Automatyczne pobieranie transakcji z kont bankowych użytkowników w celu łatwiejszego rozliczania.
+    \item \textbf{Rozbudowa modułu AI:} Wykorzystanie bardziej zaawansowanych modeli uczenia maszynowego do lepszego kategoryzowania wydatków i inteligentnego przydzielania zadań (np. na podstawie preferencji i historii).
+    \item \textbf{Kalendarz:} Wizualizacja zadań i płatności na wspólnym kalendarzu z możliwością synchronizacji z Google Calendar.
+\end{enumerate}
+
+Podsumowując, aplikacja ,,Household Manager'' stanowi funkcjonalne i nowoczesne narzędzie, które realnie może wpłynąć na poprawę jakości życia osób dzielących gospodarstwo domowe, redukując liczbę konfliktów i usprawniając codzienne obowiązki.

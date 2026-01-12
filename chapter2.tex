@@ -1,0 +1,136 @@
+\chapter{Specyfikacja wymagań i projekt systemu}
+\label{rozdzial2}
+
+Rozdział ten definiuje wymagania stawiane systemowi ,,Household Manager'' oraz przedstawia jego projekt architektoniczny i bazodanowy.
+
+\section{Wymagania funkcjonalne}
+
+Wymagania funkcjonalne określają, co system powinien robić. Zostały one podzielone na moduły odpowiadające głównym obszarom działania aplikacji.
+
+\subsection{Moduł Użytkownika i Uwierzytelniania}
+\begin{itemize}
+    \item \textbf{Rejestracja i logowanie:} Użytkownik może założyć konto podając adres e-mail i hasło lub skorzystać z logowania przez Google (OAuth 2.0). System weryfikuje poprawność wprowadzonych danych (np. format adresu e-mail, złożoność hasła).
+    \item \textbf{Zarządzanie profilem:} Możliwość edycji awatara (zdjęcia profilowego) oraz danych osobowych (imię, nazwisko). Zmiana hasła wymaga ponownego uwierzytelnienia.
+    \item \textbf{Przypomnienie hasła:} Procedura resetowania hasła drogą mailową, wykorzystująca unikalne tokeny jednorazowe.
+\end{itemize}
+
+\subsection{Moduł Domu (Home)}
+\begin{itemize}
+    \item \textbf{Tworzenie domu:} Użytkownik może utworzyć nową przestrzeń (Dom), nadając jej nazwę. Automatycznie staje się administratorem nowo utworzonego domu.
+    \item \textbf{Zarządzanie członkami:} Możliwość zapraszania nowych osób poprzez unikalny, 6-cyfrowy kod zaproszenia, ważny przez określony czas. Administrator może usuwać członków z domu.
+    \item \textbf{Wiele domów:} Architektura systemu pozwala użytkownikowi na przynależność do wielu domów jednocześnie (np. "Mieszkanie Studenckie" i "Dom Rodzinny") oraz płynne przełączanie się między nimi w interfejsie aplikacji.
+\end{itemize}
+
+\subsection{Moduł Zadań (Tasks)}
+\begin{itemize}
+    \item \textbf{CRUD Zadań:} Pełna obsługa cyklu życia zadania: tworzenie, edycja, usuwanie i wyświetlanie listy zadań. Każde zadanie posiada tytuł, opis oraz priorytet.
+    \item \textbf{Przydzielanie:} Możliwość przypisania zadania do jednego lub wielu domowników. System obsługuje również zadania rotacyjne (cykliczne).
+    \item \textbf{Terminy:} Definiowanie daty wykonania zadania (deadline). Aplikacja wyróżnia zadania przeterminowane.
+    \item \textbf{Statusy:} Oznaczanie zadań jako wykonane, co jest widoczne dla wszystkich członków domu w czasie rzeczywistym.
+\end{itemize}
+
+\subsection{Moduł Finansowy (Bills)}
+\begin{itemize}
+    \item \textbf{Dodawanie rachunków:} Wprowadzanie kwoty, tytułu, kategorii (np. media, czynsz, zakupy) oraz terminu płatności.
+    \item \textbf{OCR (Optical Character Recognition):} Innowacyjna funkcja pozwalająca na zrobienie zdjęcia fizycznego paragonu lub faktury. System automatycznie przetwarza obraz, ekstrahując kwotę całkowitą i nazwę sprzedawcy, co znacząco przyspiesza proces wprowadzania danych.
+    \item \textbf{Podział kosztów:} Elastyczny podział kwoty rachunku na członków domu. Domyślnie system proponuje podział równomierny, ale użytkownik może go modyfikować.
+    \item \textbf{Rozliczanie:} Śledzenie statusu płatności (kto już zapłacił swoją część, a kto zalega).
+\end{itemize}
+
+\subsection{Moduł Zakupów (Shopping)}
+\begin{itemize}
+    \item \textbf{Lista zakupów:} Dodawanie produktów do wspólnej listy zakupowej.
+    \item \textbf{Kategorie:} Grupowanie produktów (np. spożywcze, chemia, warzywa) w celu łatwiejszej nawigacji w sklepie.
+    \item \textbf{Interakcja:} Odhaczanie kupionych produktów, co skutkuje ich przeniesieniem do sekcji "Kupione" lub usunięciem z listy. Synchronizacja stanu listy między urządzeniami zapobiega dublowaniu zakupów.
+\end{itemize}
+
+\subsection{Moduł Ankiet (Polls)}
+\begin{itemize}
+    \item \textbf{Tworzenie ankiet:} Możliwość zadawania pytań dotyczących wspólnych spraw (np. "Co na obiad?", "Jakiego dostawcę internetu wybieramy?") i definiowania opcji odpowiedzi.
+    \item \textbf{Głosowanie:} Anonimowe lub jawne oddawanie głosu przez domowników.
+    \item \textbf{Wyniki:} Wizualizacja wyników ankiety w formie wykresu lub listy procentowej.
+\end{itemize}
+
+\section{Wymagania niefunkcjonalne}
+
+\begin{itemize}
+    \item \textbf{Dostępność (Availability):} System powinien być dostępny 24 godziny na dobę, 7 dni w tygodniu, z planowanymi oknami serwisowymi w godzinach nocnych.
+    \item \textbf{Skalowalność:} Architektura backendu musi umożliwiać łatwe skalowanie poziome (dodawanie kolejnych instancji serwera) w przypadku wzrostu liczby użytkowników, co realizowane jest poprzez konteneryzację (Docker).
+    \item \textbf{Bezpieczeństwo:}
+        \begin{itemize}
+            \item Hasła użytkowników muszą być przechowywane w formie zahaszowanej przy użyciu silnego algorytmu (np. bcrypt).
+            \item Komunikacja między klientem a serwerem musi być szyfrowana protokołem TLS/SSL (HTTPS).
+            \item Dostęp do zasobów API jest zabezpieczony mechanizmem tokenów JWT (JSON Web Tokens).
+        \end{itemize}
+    \item \textbf{Responsywność i wydajność:} Aplikacja mobilna powinna działać płynnie na systemach Android (wersja 10+) i iOS (wersja 15+). Czas odpowiedzi API nie powinien przekraczać 200ms dla 95\% standardowych zapytań (np. pobranie listy zadań).
+    \item \textbf{Internacjonalizacja:} System powinien być przygotowany do obsługi wielu wersji językowych (i18n), z domyślnym wsparciem dla języka polskiego i angielskiego.
+\end{itemize}
+
+\section{Projekt systemu}
+
+\subsection{Architektura klient-serwer}
+
+System ,,Household Manager'' został zaprojektowany w oparciu o klasyczną, trójwarstwową architekturę klient-serwer (ang. \textit{Three-Tier Architecture}), która zapewnia logiczną separację warstwy prezentacji, logiki biznesowej oraz danych. Takie podejście ułatwia niezależny rozwój poszczególnych komponentów oraz ich utrzymanie.
+
+\begin{itemize}
+    \item \textbf{Warstwa Prezentacji (Klient):} Aplikacja mobilna zaimplementowana w frameworku React Native. Odpowiada za interakcję z użytkownikiem, wyświetlanie danych oraz przesyłanie żądań do serwera. Klient jest "cienki" (ang. \textit{thin client}), co oznacza, że większość ciężkiej logiki biznesowej została przeniesiona na serwer.
+    \item \textbf{Warstwa Logiki Biznesowej (Serwer):} Serwer REST API napisany w języku Go. Przetwarza żądania przychodzące z aplikacji mobilnej, wykonuje operacje na danych, autoryzuje użytkowników i komunikuje się z bazą danych.
+    \item \textbf{Warstwa Danych (Baza Danych):} Relacyjna baza danych PostgreSQL przechowująca wszystkie trwałe informacje systemu.
+\end{itemize}
+
+Poniższy schemat (Rysunek \ref{fig:architecture}) prezentuje ogólną architekturę systemu oraz przepływ danych między komponentami.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{placeholder.jpg} % Placeholder
+    \caption{Schemat architektury systemu Household Manager}
+    \label{fig:architecture}
+\end{figure}
+
+\subsection{Projekt bazy danych PostgreSQL}
+
+Jako system zarządzania bazą danych (RDBMS) wybrano \textbf{PostgreSQL}. Decyzja ta podyktowana była kilkoma kluczowymi czynnikami:
+
+\begin{enumerate}
+    \item \textbf{Integralność danych (ACID):} PostgreSQL jest w pełni zgodny ze standardem ACID (Atomicity, Consistency, Isolation, Durability), co jest kluczowe w systemach finansowych (moduł rachunków), gdzie nie można pozwolić sobie na utratę lub niespójność danych transakcyjnych.
+    \item \textbf{Wsparcie dla JSONB:} Baza ta oferuje doskonałą obsługę typu danych JSON, co pozwala na elastyczne przechowywanie mniej ustrukturyzowanych danych (np. metadane logów OCR) obok tradycyjnych tabel relacyjnych.
+    \item \textbf{Wydajność i rozszerzalność:} PostgreSQL słynie z wysokiej wydajności przy złożonych zapytaniach oraz możliwości tworzenia własnych indeksów i funkcji.
+\end{enumerate}
+
+\subsection{Diagram ERD}
+
+Struktura bazy danych została zaprojektowana tak, aby odzwierciedlać rzeczywiste relacje panujące w gospodarstwie domowym. Centralnym punktem schematu są tabele użytkowników (\texttt{users}) oraz domów (\texttt{homes}), połączone relacją wiele-do-wielu poprzez tabelę łącznikową (\texttt{home\_memberships}).
+
+Poniższy diagram ERD (Entity Relationship Diagram) przedstawia szczegółowy schemat bazy danych.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{placeholder.jpg} % Placeholder for ERD
+    \caption{Diagram ERD bazy danych}
+    \label{fig:erd}
+\end{figure}
+
+Kluczowe encje w systemie to:
+
+\begin{itemize}
+    \item \textbf{users:} Przechowuje unikalne dane identyfikacyjne użytkowników (adres email, hash hasła) oraz dane profilowe.
+    \item \textbf{homes:} Reprezentuje pojedyncze gospodarstwo domowe. Posiada unikalny identyfikator oraz kod zaproszenia.
+    \item \textbf{home\_memberships:} Tabela asocjacyjna definiująca przynależność użytkownika do domu oraz jego rolę (np. ADMIN, MEMBER).
+    \item \textbf{tasks:} Tabela zadań zawierająca tytuł, opis, datę wykonania oraz status.
+    \item \textbf{task\_assignments:} Definiuje, który użytkownik jest odpowiedzialny za dane zadanie. Umożliwia przypisanie wielu osób do jednego zadania.
+    \item \textbf{bills:} Przechowuje informacje o rachunkach: kwotę całkowitą, datę płatności, wystawcę rachunku oraz status (opłacony/nieopłacony).
+    \item \textbf{shopping\_items} oraz \textbf{shopping\_categories:} Tabele obsługujące moduł zakupów, pozwalające na kategoryzację produktów.
+\end{itemize}
+
+\subsection{Modele GORM i relacje}
+
+W warstwie aplikacji (backend w Go) wykorzystano bibliotekę \textbf{GORM} (Go Object Relational Mapping). Jest to potężne narzędzie mapowania obiektowo-relacyjnego, które pozwala programiście operować na strukturach języka Go (structs) zamiast pisać surowe zapytania SQL.
+
+Zalety wykorzystania GORM w projekcie:
+\begin{itemize}
+    \item \textbf{Bezpieczeństwo:} Automatyczna ochrona przed atakami typu SQL Injection dzięki parametryzacji zapytań.
+    \item \textbf{Automigracje:} GORM potrafi automatycznie tworzyć i aktualizować schemat bazy danych na podstawie definicji struktur w kodzie (Code-First approach), co znacznie przyspiesza prototypowanie.
+    \item \textbf{Abstrakcja:} Pozwala na łatwą zmianę silnika bazy danych w przyszłości (np. na MySQL czy SQLite) bez konieczności przepisywania logiki aplikacji.
+\end{itemize}
+
+Wadą rozwiązań typu ORM może być narzut wydajnościowy przy bardzo skomplikowanych zapytaniach analitycznych, jednak w przypadku typowych operacji CRUD (Create, Read, Update, Delete) realizowanych w systemie Household Manager, korzyści wynikające z szybkości wytwarzania oprogramowania przeważają nad minimalnym spadkiem wydajności.

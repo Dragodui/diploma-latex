@@ -1,0 +1,82 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Szablon pracy dyplomowej
+% Wydział Informatyki 
+% Zachodniopomorski Uniwersytet Technologiczny w Szczecinie
+% autor Joanna Kołodziejczyk (jkolodziejczyk@zut.edu.pl)
+% Bardzo wczesnym pierwowzorem szablonu był
+% The Legrand Orange Book
+% Version 5.0 (29/05/2025)2023)
+%
+% Modifications to LOB assigned by %JK
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Instrukcja instalacji i uruchomienia}
+\label{chapter:dodatek_A}
+
+W tym dodatku opisano procedurę instalacji i uruchomienia systemu ,,Household Manager'' w środowisku lokalnym.
+
+\section{Wymagania wstępne}
+
+Do poprawnego uruchomienia systemu wymagane jest zainstalowanie następujących narzędzi:
+\begin{itemize}
+    \item \textbf{Docker Desktop} (wersja 4.0 lub nowsza) – do konteneryzacji serwera i bazy danych.
+    \item \textbf{Node.js} (wersja 18 LTS lub nowsza) – środowisko uruchomieniowe dla aplikacji mobilnej.
+    \item \textbf{Git} – system kontroli wersji.
+    \item \textbf{Aplikacja Expo Go} – zainstalowana na fizycznym urządzeniu mobilnym (Android/iOS) do testowania aplikacji.
+\end{itemize}
+
+\section{Uruchomienie serwera (Backend)}
+
+1. Sklonuj repozytorium projektu:
+\begin{lstlisting}[language=bash]
+git clone https://github.com/Dragodui/diploma-server.git
+cd diploma-server
+\end{lstlisting}
+
+2. Utwórz plik konfiguracyjny \texttt{.env} na podstawie przykładu:
+\begin{lstlisting}[language=bash]
+cp .env.example .env
+\end{lstlisting}
+
+3. Uzupełnij brakujące zmienne środowiskowe w pliku \texttt{.env} (klucze API do AWS S3, Google OAuth itp.). Dla celów testowych lokalnie można pozostawić wartości domyślne dla bazy danych.
+
+4. Uruchom kontenery Docker:
+\begin{lstlisting}[language=bash]
+docker compose up -d --build
+\end{lstlisting}
+
+5. Serwer będzie dostępny pod adresem \texttt{http://localhost:8080}. Dokumentacja Swagger UI dostępna jest pod adresem \texttt{http://localhost:8080/swagger/index.html}.
+
+\section{Uruchomienie aplikacji mobilnej (Frontend)}
+
+1. Przejdź do katalogu aplikacji klienckiej:
+\begin{lstlisting}[language=bash]
+cd client
+\end{lstlisting}
+
+2. Zainstaluj zależności projektu:
+\begin{lstlisting}[language=bash]
+npm install
+\end{lstlisting}
+
+3. Uruchom serwer deweloperski Expo:
+\begin{lstlisting}[language=bash]
+npx expo start
+\end{lstlisting}
+
+4. Zeskanuj wygenerowany kod QR za pomocą aplikacji Expo Go na swoim telefonie (upewnij się, że telefon i komputer są w tej samej sieci Wi-Fi) lub naciśnij \texttt{a}, aby uruchomić emulator Androida (wymaga zainstalowanego Android Studio).
+
+\section{Konfiguracja zmiennych środowiskowych}
+
+Poniżej przedstawiono przykładową konfigurację pliku \texttt{.env} dla serwera:
+
+\begin{lstlisting}[caption=Przykładowy plik .env]
+PORT=8080
+DB_HOST=postgres
+DB_USER=postgres
+DB_PASSWORD=secret
+DB_NAME=household_db
+JWT_SECRET=super_secret_key_change_me
+AWS_REGION=eu-central-1
+AWS_ACCESS_KEY_ID=AKIA...
+AWS_SECRET_ACCESS_KEY=...
+\end{lstlisting}

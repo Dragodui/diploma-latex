@@ -1,0 +1,235 @@
+\chapter{Implementacja systemu}
+\label{rozdzial4}
+
+W tym rozdziale przedstawiono szczegóły implementacyjne systemu ,,Household Manager'', w tym strukturę kodu, konfigurację routingu, model danych, system autoryzacji oraz budowę aplikacji klienckiej. Zaprezentowano również kluczowe fragmenty kodu źródłowego oraz zrzuty ekranu gotowej aplikacji.
+
+\section{Struktura projektu backend}
+
+Aplikacja serwerowa została zaprojektowana zgodnie z zasadami architektury \textit{Clean Architecture} (Czysta Architektura), co zapewnia separację warstw, niezależność od frameworków oraz łatwość testowania. Kod podzielony jest na wyraźne warstwy odpowiedzialności:
+
+\begin{enumerate}
+    \item \textbf{Warstwa Transportowa (Handlers/Controllers):} Odpowiada za obsługę protokołu HTTP. Odbiera żądania, waliduje dane wejściowe (DTO), wywołuje odpowiednie serwisy i zwraca odpowiedź w formacie JSON. Nie zawiera logiki biznesowej.
+    \item \textbf{Warstwa Usług (Services):} Serce aplikacji. Tutaj znajduje się cała logika biznesowa (np. obliczanie podziału rachunku, generowanie kodu zaproszenia). Serwisy operują na modelach domenowych i korzystają z repozytoriów.
+    \item \textbf{Warstwa Dostępu do Danych (Repositories):} Odpowiada za bezpośrednią komunikację z bazą danych. Ukrywa szczegóły implementacyjne zapytań SQL/GORM przed resztą aplikacji.
+    \item \textbf{Modele (Models):} Struktury danych reprezentujące encje biznesowe (np. User, Bill).
+\end{enumerate}
+
+Struktura katalogów projektu prezentuje się następująco:
+
+\begin{itemize}
+    \item \texttt{cmd/server/main.go}: Punkt wejścia aplikacji, inicjalizacja konfiguracji, połączenia z DB i start serwera.
+    \item \texttt{internal/config}: Obsługa zmiennych środowiskowych (ładowanie z pliku .env).
+    \item \texttt{internal/http/handlers}: Kontrolery HTTP.
+    \item \texttt{internal/http/middleware}: Oprogramowanie pośredniczące (logowanie, autoryzacja JWT, obsługa CORS).
+    \item \texttt{internal/models}: Definicje struktur danych i tagów GORM.
+    \item \texttt{internal/repository}: Warstwa DAO (Data Access Object).
+    \item \texttt{internal/services}: Logika biznesowa.
+    \item \texttt{internal/router}: Konfiguracja routera Chi i mapowanie ścieżek.
+\end{itemize}
+
+\section{Endpoints API i routing w Chi}
+
+Do obsługi routingu wykorzystano bibliotekę \texttt{go-chi}. Definiuje ona drzewiastą strukturę ścieżek, co ułatwia zarządzanie dużą liczbą endpointów.
+
+\begin{lstlisting}[language=go, caption=Konfiguracja routingu dla zasobów Home, label=code:router]
+r.Route("/homes", func(r chi.Router) {
+    r.Post("/create", homeHandler.Create) // Tworzenie domu
+    r.Post("/join", homeHandler.Join)     // Dolaczanie do domu
+    r.Get("/my", homeHandler.GetUserHome) // Pobieranie domu uzytkownika
+
+    r.Route("/{home_id}", func(r chi.Router) {
+        // Middleware sprawdzajacy czy uzytkownik jest czlonkiem domu
+        r.With(middleware.RequireMember(homeRepo)).Get("/", homeHandler.GetByID)
+        
+        // Zagniezdzone zasoby: zadania, rachunki, zakupy
+        r.Route("/tasks", func(r chi.Router) {
+            r.Get("/", taskHandler.GetTasksByHomeID)
+            r.Post("/", taskHandler.Create)
+        })
+        r.Route("/bills", func(r chi.Router) {
+             r.Get("/", billHandler.GetByHomeID)
+        })
+    })
+})
+\end{lstlisting}
+
+\subsection{Dokumentacja API (Swagger)}
+
+Wszystkie endpointy zostały udokumentowane przy użyciu standardu OpenAPI (Swagger). Poniższy zrzut ekranu przedstawia interaktywną dokumentację wygenerowaną automatycznie.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\textwidth]{placeholder.jpg} % Placeholder for Swagger UI
+    \caption{Dokumentacja API w Swagger UI}
+    \label{fig:swagger}
+\end{figure}
+
+\section{Modele danych i migracje}
+
+Baza danych jest zarządzana przez bibliotekę GORM. Struktury Go są mapowane na tabele w bazie danych. Wykorzystano tagi strukturalne (\texttt{`gorm:"..."`}) do definiowania ograniczeń (constraints), indeksów oraz relacji.
+
+Przykładowa, rozbudowana struktura modelu rachunku (\texttt{Bill}):
+
+\begin{lstlisting}[language=go, caption=Model rachunku (Bill) w GORM, label=code:bill_model]
+type Bill struct {
+    ID          uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+    Title       string    `gorm:"not null"`
+    Amount      float64   `gorm:"not null"`
+    PayerID     uuid.UUID `gorm:"type:uuid;not null"` // Klucz obcy do User
+    Payer       User      `gorm:"foreignKey:PayerID"` // Relacja
+    HomeID      uuid.UUID `gorm:"type:uuid;not null"` // Klucz obcy do Home
+    CategoryID  *uuid.UUID `gorm:"type:uuid"`
+    Category    *BillCategory `gorm:"foreignKey:CategoryID"`
+    DueDate     time.Time
+    IsPaid      bool      `gorm:"default:false"`
+    ReceiptURL  string    // URL do zdjecia w S3
+    
+    // Pola audytowe
+    CreatedAt   time.Time
+    UpdatedAt   time.Time
+    DeletedAt   gorm.DeletedAt `gorm:"index"` // Obsluga Soft Delete
+}
+\end{lstlisting}
+
+\section{System autoryzacji i JWT}
+
+Bezpieczeństwo API opiera się na tokenach JWT (JSON Web Tokens). Proces autoryzacji przebiega następująco:
+\begin{enumerate}
+    \item Użytkownik loguje się podając email i hasło.
+    \item Serwer weryfikuje hasło (porównuje hash bcrypt).
+    \item W przypadku sukcesu, generowany jest token JWT zawierający \texttt{user_id} oraz datę wygaśnięcia (np. 72h).
+    \item Token jest podpisywany tajnym kluczem (\texttt{JWT_SECRET}) przechowywanym tylko na serwerze.
+    \item Klient dołącza token do nagłówka \texttt{Authorization: Bearer <token>} każdego żądania.
+\end{enumerate}
+
+\section{Obsługa błędów i walidacja danych}
+
+Wszystkie błędy zwracane przez API mają ujednoliconą strukturę JSON, co ułatwia ich obsługę po stronie klienta. Walidacja danych wejściowych odbywa się przy użyciu biblioteki \texttt{go-playground/validator}.
+
+\begin{lstlisting}[language=json, caption=Struktura błędu API, label=json:error]
+{
+    "error": "Validation Failed",
+    "details": {
+        "Email": "field is required",
+        "Password": "min length is 8"
+    }
+}
+\end{lstlisting}
+
+\section{Integracja z OCR dla rachunków}
+
+Moduł OCR (\textit{Optical Character Recognition}) umożliwia automatyczne zaczytywanie danych z rachunków. Logika parsowania tekstu z paragonu opiera się na wyrażeniach regularnych (Regex), które poszukują wzorców dat i kwot.
+
+Fragment serwisu odpowiedzialnego za analizę tekstu z paragonu:
+
+\begin{lstlisting}[language=go, caption=Logika parsowania tekstu z paragonu, label=code:ocr_logic]
+func (s *OCRService) ParseReceiptText(text string) (float64, string) {
+    // Regex dla kwot (np. 123.45, 123,45 PLN)
+    amountRegex := regexp.MustCompile(`(\d+[.,]\d{2})\s*(?:PLN|zl|EUR)?`)
+    
+    lines := strings.Split(text, "\n")
+    var maxAmount float64
+    var vendor string
+
+    for i, line := range lines {
+        if i == 0 {
+            vendor = line // Zalozenie: pierwsza linia to nazwa sklepu
+        }
+        matches := amountRegex.FindStringSubmatch(line)
+        if len(matches) > 1 {
+            // Konwersja przecinka na kropke i parsowanie float
+            val, err := strconv.ParseFloat(strings.Replace(matches[1], ",", ".", 1), 64)
+            if err == nil && val > maxAmount {
+                maxAmount = val // Szukamy najwiekszej kwoty (Suma)
+            }
+        }
+    }
+    return maxAmount, vendor
+}
+\end{lstlisting}
+
+\section{Struktura projektu frontend}
+
+Aplikacja kliencka w React Native wykorzystuje \textbf{Expo Router}, który opiera routing na strukturze plików (File-based routing), podobnie jak framework Next.js.
+Katalog \texttt{app} zawiera ekrany aplikacji:
+
+\begin{itemize}
+    \item \texttt{app/index.tsx}: Ekran startowy (Splash screen).
+    \item \texttt{app/(auth)/login.tsx}: Ekran logowania (grupa auth, niedostępna po zalogowaniu).
+    \item \texttt{app/(tabs)/_layout.tsx}: Konfiguracja dolnego paska nawigacji (Tab Bar).
+    \item \texttt{app/(tabs)/home.tsx}: Główny pulpit użytkownika.
+    \item \texttt{app/[id].tsx}: Dynamiczna ścieżka (np. szczegóły zadania).
+\end{itemize}
+
+\section{Interfejs użytkownika (UI) - Prezentacja aplikacji}
+
+Interfejs użytkownika został zaprojektowany z naciskiem na przejrzystość i łatwość obsługi (User Experience). Poniżej przedstawiono kluczowe ekrany aplikacji.
+
+\subsection{Ekran logowania i rejestracji}
+Umożliwia dostęp do aplikacji. Użytkownik może zalogować się tradycyjnie lub przez Google.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.45\textwidth]{placeholder.jpg} % Placeholder: Login Screen
+    \caption{Ekran logowania}
+    \label{fig:login_screen}
+\end{figure}
+
+\subsection{Pulpit główny (Dashboard)}
+Centrum dowodzenia domem. Wyświetla podsumowanie: najbliższe zadania, stan konta oraz skróty do najważniejszych funkcji.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.45\textwidth]{placeholder.jpg} % Placeholder: Dashboard
+    \caption{Pulpit główny aplikacji}
+    \label{fig:dashboard_screen}
+\end{figure}
+
+\subsection{Zarządzanie zadaniami}
+Lista zadań z możliwością filtrowania i oznaczania jako wykonane.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.45\textwidth]{placeholder.jpg} % Placeholder: Tasks
+    \caption{Lista zadań domowych}
+    \label{fig:tasks_screen}
+\end{figure}
+
+\subsection{Skanowanie rachunków (OCR)}
+Moduł pozwalający na zrobienie zdjęcia i weryfikację odczytanych danych.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.45\textwidth]{placeholder.jpg} % Placeholder: OCR/Bill
+    \caption{Ekran dodawania rachunku ze skanowaniem OCR}
+    \label{fig:ocr_screen}
+\end{figure}
+
+\section{Wybrane fragmenty kodu frontendowego}
+
+Poniżej przedstawiono niestandardowy React Hook odpowiedzialny za pobieranie danych z API z obsługą stanu ładowania i błędów.
+
+\begin{lstlisting}[language=javascript, caption=Custom Hook useFetch, label=code:usefetch]
+export function useFetch<T>(url: string) {
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await api.get(url);
+        setData(response.data);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [url]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+\end{lstlisting}
+
