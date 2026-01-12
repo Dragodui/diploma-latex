@@ -17,7 +17,7 @@
 %	PAKIETY ORAZ PLIKI ZAWIERAJĄCE DEFINICJE STYLI I KONFIGURACJĘ OTOCZEŃ LATEX
 %----------------------------------------------------------------------------------------
 
-\documentclass[12pt,fleqn,twoside]{book} % JK Rozmiary czcionek są zgodne z wymaganiami uczelni 
+\documentclass[12pt,fleqn,twoside,openany]{book} % JK Rozmiary czcionek są zgodne z wymaganiami uczelni 
 % UWAGA! - wydruk jest dwustronny i jest to zabieg zamierzony
 
 % \usepackage{fix-cm} % Zapewnienie, że wszystkie rozmiary czcionek są dostępne
@@ -73,27 +73,27 @@
 %----------------------------------------------------------------------------------------
 %	ROZDZIAŁ 1
 %----------------------------------------------------------------------------------------
-\include{chapter1} % chapter1.tex zawiera treść rozdziału 1
+\include{01_problem_analysis} % chapter1.tex zawiera treść rozdziału 1
 
 %----------------------------------------------------------------------------------------
 %	ROZDZIAŁ 2
 %----------------------------------------------------------------------------------------
-\include{chapter2} % chapter2.tex zawiera treść rozdziału 2
+\include{02_system_design} % chapter2.tex zawiera treść rozdziału 2
 
 %----------------------------------------------------------------------------------------
 %	ROZDZIAŁ 3
 %----------------------------------------------------------------------------------------
-\include{chapter3} % chapter3.tex zawiera treść rozdziału 3
+\include{03_technology_stack} % chapter3.tex zawiera treść rozdziału 3
 
 %----------------------------------------------------------------------------------------
 %	ROZDZIAŁ 4
 %----------------------------------------------------------------------------------------
-\include{chapter4} % chapter4.tex zawiera treść rozdziału 4
+\include{04_implementation} % chapter4.tex zawiera treść rozdziału 4
 
 %----------------------------------------------------------------------------------------
 %	ROZDZIAŁ 5
 %----------------------------------------------------------------------------------------
-\include{chapter5} % chapter5.tex zawiera treść rozdziału 5
+\include{05_testing} % chapter5.tex zawiera treść rozdziału 5
 
 %----------------------------------------------------------------------------------------
 %	ROZDZIAŁy kolejne należy dodać analogicznie do 1 i 2 
@@ -153,7 +153,7 @@
 \pagestyle{fancy} 
 \begin{appendix}
 \appendix
-\include{appendixA} % conclusions.tex zawiera treść zakończenia/podsumowania pracy dyplomowej
+\include{appendix_installation} % conclusions.tex zawiera treść zakończenia/podsumowania pracy dyplomowej
 \end{appendix}
 %----------------------------------------------------------------------------------------
 % Koniec dokumentu

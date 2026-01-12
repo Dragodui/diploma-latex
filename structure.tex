@@ -65,7 +65,7 @@
 %----------------------------------------------------------------------------------------
 
 \usepackage{fancyhdr} % Required for header and footer configuration
-\setlength{\headheight}{30pt}
+\setlength{\headheight}{35pt}
 \pagestyle{fancy} % Enable the custom headers and footers
 
 \renewcommand{\chaptermark}[1]{\markboth{\sffamily\normalsize\thechapter.\hspace{5pt} #1}{}} % JK - Styling for the current chapter in the header
@@ -424,8 +424,64 @@ literate=%
  
 \lstset{style=mystyle}
 
-%----------------------------------------------------------------------------------------
-% CAPTIONS ( JK - design and implementation)
+\lstdefinelanguage{json}{
+    basicstyle=\normalfont\ttfamily,
+    numbers=left,
+    numberstyle=\scriptsize,
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=lines,
+    literate=
+     *{0}{{{\color{blue}0}}}{1}
+      {1}{{{\color{blue}1}}}{1}
+      {2}{{{\color{blue}2}}}{1}
+      {3}{{{\color{blue}3}}}{1}
+      {4}{{{\color{blue}4}}}{1}
+      {5}{{{\color{blue}5}}}{1}
+      {6}{{{\color{blue}6}}}{1}
+      {7}{{{\color{blue}7}}}{1}
+      {8}{{{\color{blue}8}}}{1}
+      {9}{{{\color{blue}9}}}{1}
+      {:}{{{\color{black}{:}}}}{1}
+      {,}{{{\color{black}{,}}}}{1}
+      {\{}{{{\color{black}{\{}}}}{1}
+      {\}}{{{\color{black}{\}}}}}{1}
+      {[}{{{\color{black}{[}}}}{1}
+      {]}{{{\color{black}{]}}}}{1},
+}
+
+\lstdefinelanguage{javascript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break, const, let, async, await, try, finally, export, default},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{teal}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{gray}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
+
+\lstdefinelanguage{go}{
+  keywords={break, default, func, interface, select, case, defer, go, map, struct, chan, else, goto, package, switch, const, fallthrough, if, range, type, continue, for, import, return, var},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={append, cap, close, complex, copy, delete, imag, len, make, new, panic, print, println, real, recover},
+  ndkeywordstyle=\color{teal}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=true,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{gray}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
+
 %----------------------------------------------------------------------------------------
 
 \usepackage{caption}

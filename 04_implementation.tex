@@ -97,8 +97,8 @@ Bezpieczeństwo API opiera się na tokenach JWT (JSON Web Tokens). Proces autory
 \begin{enumerate}
     \item Użytkownik loguje się podając email i hasło.
     \item Serwer weryfikuje hasło (porównuje hash bcrypt).
-    \item W przypadku sukcesu, generowany jest token JWT zawierający \texttt{user_id} oraz datę wygaśnięcia (np. 72h).
-    \item Token jest podpisywany tajnym kluczem (\texttt{JWT_SECRET}) przechowywanym tylko na serwerze.
+    \item W przypadku sukcesu, generowany jest token JWT zawierający \texttt{user\_id} oraz datę wygaśnięcia (np. 72h).
+    \item Token jest podpisywany tajnym kluczem (\texttt{JWT\_SECRET}) przechowywanym tylko na serwerze.
     \item Klient dołącza token do nagłówka \texttt{Authorization: Bearer <token>} każdego żądania.
 \end{enumerate}
 
@@ -156,7 +156,7 @@ Katalog \texttt{app} zawiera ekrany aplikacji:
 \begin{itemize}
     \item \texttt{app/index.tsx}: Ekran startowy (Splash screen).
     \item \texttt{app/(auth)/login.tsx}: Ekran logowania (grupa auth, niedostępna po zalogowaniu).
-    \item \texttt{app/(tabs)/_layout.tsx}: Konfiguracja dolnego paska nawigacji (Tab Bar).
+    \item \texttt{app/(tabs)/\_layout.tsx}: Konfiguracja dolnego paska nawigacji (Tab Bar).
     \item \texttt{app/(tabs)/home.tsx}: Główny pulpit użytkownika.
     \item \texttt{app/[id].tsx}: Dynamiczna ścieżka (np. szczegóły zadania).
 \end{itemize}
