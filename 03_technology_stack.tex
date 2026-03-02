@@ -46,14 +46,14 @@ Warstwa kliencka (aplikacja mobilna) została zrealizowana w technologii \textbf
 
 \subsection{Charakterystyka React Native}
 
-React Native, stworzony przez Facebooka (Meta), różni się od rozwiązań hybrydowych (jak Ionic czy Cordova) tym, że nie renderuje interfejsu w komponencie WebView (przeglądarce internetowej). Zamiast tego, kod JavaScript komunikuje się z natywnym API platformy poprzez tzw. "Most" (Bridge) lub – w nowszej architekturze – poprzez JSI (JavaScript Interface).
+React Native, stworzony przez Facebooka (Meta), różni się od rozwiązań hybrydowych (jak Ionic czy Cordova) tym, że nie renderuje interfejsu w komponencie WebView (przeglądarce internetowej). Zamiast tego, kod JavaScript komunikuje się z natywnym API platformy poprzez tzw. "Most" (Bridge) lub - w nowszej architekturze - poprzez JSI (JavaScript Interface).
 Dzięki temu, komponenty używane w kodzie (np. \texttt{<View>}, \texttt{<Text>}) są tłumaczone na natywne widoki systemowe (\texttt{android.view.View}, \texttt{UIView}). Zapewnia to wydajność i odczucia z użytkowania (Look and Feel) zbliżone do aplikacji pisanych w Javie czy Swifcie, przy zachowaniu wspólnego kodu dla obu platform (tzw. \textit{Code Sharing} na poziomie 90-95\%).
 
 Wykorzystanie składni JSX (JavaScript XML) pozwala na deklaratywne tworzenie interfejsu użytkownika, co znacznie ułatwia budowanie skomplikowanych widoków z mniejszych, reużywalnych komponentów.
 
 \subsection{Platforma Expo}
 
-Projekt wykorzystuje platformę \textbf{Expo} – zestaw narzędzi i usług zbudowanych wokół React Native. Decyzja o użyciu Expo zamiast "czystego" React Native CLI (Bare Workflow) wynika z kilku korzyści:
+Projekt wykorzystuje platformę \textbf{Expo} - zestaw narzędzi i usług zbudowanych wokół React Native. Decyzja o użyciu Expo zamiast "czystego" React Native CLI (Bare Workflow) wynika z kilku korzyści:
 \begin{itemize}
     \item \textbf{Szybki start i konfiguracja:} Expo eliminuje konieczność ręcznej konfiguracji środowiska Android Studio i Xcode na początku projektu.
     \item \textbf{Expo Go:} Możliwość natychmiastowego testowania aplikacji na fizycznym urządzeniu poprzez zeskanowanie kodu QR, bez konieczności kompilacji pliku .apk/.ipa przy każdej zmianie.
@@ -73,7 +73,7 @@ W nowoczesnych aplikacjach frontendowych kluczowe jest efektywne zarządzanie st
     Do komunikacji z API RESTowym wykorzystano klienta Axios. Jest to biblioteka oparta na obietnicach (Promises), która automatycznie transformuje dane do formatu JSON, obsługuje nagłówki (np. dodawanie tokena autoryzacyjnego) oraz zapewnia lepszą obsługę błędów niż wbudowana w przeglądarki funkcja \texttt{fetch}.
 \end{itemize}
 
-\section{Integracja backend–frontend (REST API)}
+\section{Integracja backend-frontend (REST API)}
 
 Komunikacja między aplikacją mobilną a serwerem odbywa się zgodnie z zasadami architektury \textbf{REST} (Representational State Transfer).
 Główne założenia REST spełnione w projekcie:

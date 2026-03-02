@@ -17,7 +17,7 @@ Wymagania funkcjonalne określają, co system powinien robić. Zostały one podz
 \subsection{Moduł Domu (Home)}
 \begin{itemize}
     \item \textbf{Tworzenie domu:} Użytkownik może utworzyć nową przestrzeń (Dom), nadając jej nazwę. Automatycznie staje się administratorem nowo utworzonego domu.
-    \item \textbf{Zarządzanie członkami:} Możliwość zapraszania nowych osób poprzez unikalny, 6-cyfrowy kod zaproszenia, ważny przez określony czas. Administrator może usuwać członków z domu.
+    \item \textbf{Zarządzanie członkami:} Możliwość zapraszania nowych osób poprzez unikalny, 6-cyfrowy kod domu. Administrator może usuwać członków z domu.
     \item \textbf{Wiele domów:} Architektura systemu pozwala użytkownikowi na przynależność do wielu domów jednocześnie (np. "Mieszkanie Studenckie" i "Dom Rodzinny") oraz płynne przełączanie się między nimi w interfejsie aplikacji.
 \end{itemize}
 
@@ -32,7 +32,7 @@ Wymagania funkcjonalne określają, co system powinien robić. Zostały one podz
 \subsection{Moduł Finansowy (Bills)}
 \begin{itemize}
     \item \textbf{Dodawanie rachunków:} Wprowadzanie kwoty, tytułu, kategorii (np. media, czynsz, zakupy) oraz terminu płatności.
-    \item \textbf{OCR (Optical Character Recognition):} Innowacyjna funkcja pozwalająca na zrobienie zdjęcia fizycznego paragonu lub faktury. System automatycznie przetwarza obraz, ekstrahując kwotę całkowitą i nazwę sprzedawcy, co znacząco przyspiesza proces wprowadzania danych.
+    \item \textbf{OCR (Optical Character Recognition):} Funkcja pozwalająca na zrobienie zdjęcia fizycznego paragonu lub faktury. System automatycznie przetwarza obraz, ekstrahując kwotę całkowitą i nazwę sprzedawcy, co znacząco przyspiesza proces wprowadzania danych.
     \item \textbf{Podział kosztów:} Elastyczny podział kwoty rachunku na członków domu. Domyślnie system proponuje podział równomierny, ale użytkownik może go modyfikować.
     \item \textbf{Rozliczanie:} Śledzenie statusu płatności (kto już zapłacił swoją część, a kto zalega).
 \end{itemize}
@@ -41,7 +41,7 @@ Wymagania funkcjonalne określają, co system powinien robić. Zostały one podz
 \begin{itemize}
     \item \textbf{Lista zakupów:} Dodawanie produktów do wspólnej listy zakupowej.
     \item \textbf{Kategorie:} Grupowanie produktów (np. spożywcze, chemia, warzywa) w celu łatwiejszej nawigacji w sklepie.
-    \item \textbf{Interakcja:} Odhaczanie kupionych produktów, co skutkuje ich przeniesieniem do sekcji "Kupione" lub usunięciem z listy. Synchronizacja stanu listy między urządzeniami zapobiega dublowaniu zakupów.
+    \item \textbf{Interakcja:} Odhaczanie kupionych produktów, co skutkuje ich przeniesieniem do sekcji ''Kupione'' lub usunięciem z listy. Synchronizacja stanu listy między urządzeniami zapobiega dublowaniu zakupów.
 \end{itemize}
 
 \subsection{Moduł Ankiet (Polls)}
@@ -74,15 +74,17 @@ System ,,Household Manager'' został zaprojektowany w oparciu o klasyczną, tró
 
 \begin{itemize}
     \item \textbf{Warstwa Prezentacji (Klient):} Aplikacja mobilna zaimplementowana w frameworku React Native. Odpowiada za interakcję z użytkownikiem, wyświetlanie danych oraz przesyłanie żądań do serwera. Klient jest "cienki" (ang. \textit{thin client}), co oznacza, że większość ciężkiej logiki biznesowej została przeniesiona na serwer.
-    \item \textbf{Warstwa Logiki Biznesowej (Serwer):} Serwer REST API napisany w języku Go. Przetwarza żądania przychodzące z aplikacji mobilnej, wykonuje operacje na danych, autoryzuje użytkowników i komunikuje się z bazą danych.
-    \item \textbf{Warstwa Danych (Baza Danych):} Relacyjna baza danych PostgreSQL przechowująca wszystkie trwałe informacje systemu.
+    \item \textbf{Warstwa Logiki Biznesowej (Serwer):} Serwer REST API napisany w języku Go. Przetwarza żądania przychodzące z aplikacji mobilnej, wykonuje operacje na danych, autoryzuje użytkowników oraz zarządza komunikacją z zewnętrznymi usługami i bazami danych.
+    \item \textbf{Warstwa Buforowania (Redis):} Szybka baza danych typu In-Memory wykorzystywana do przechowywania sesji użytkowników, tokenów autoryzacyjnych oraz wyników kosztownych zapytań. Zastosowanie Redis znacząco redukuje opóźnienia i odciąża główną bazę danych.
+    \item \textbf{Warstwa Danych (PostgreSQL):} Relacyjna baza danych przechowująca ustrukturyzowane informacje o użytkownikach, wydatkach i harmonogramach domowych, zapewniając ich pełną integralność i spójność transakcyjną.
+    \item \textbf{Magazyn Obiektowy (AWS S3):} Chmurowa usługa przechowywania obiektów wykorzystywana do składowania plików binarnych, takich jak zdjęcia paragonów do modułu OCR oraz zdjęcia profilowe. W bazie danych przechowywane są jedynie klucze obiektów, co optymalizuje wydajność systemu i ułatwia skalowanie.
 \end{itemize}
 
 Poniższy schemat (Rysunek \ref{fig:architecture}) prezentuje ogólną architekturę systemu oraz przepływ danych między komponentami.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{placeholder.jpg} % Placeholder
+    \includegraphics[width=0.9\textwidth]{system_schema.png}
     \caption{Schemat architektury systemu Household Manager}
     \label{fig:architecture}
 \end{figure}
@@ -103,9 +105,9 @@ Struktura bazy danych została zaprojektowana tak, aby odzwierciedlać rzeczywis
 
 Poniższy diagram ERD (Entity Relationship Diagram) przedstawia szczegółowy schemat bazy danych.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=1.0\textwidth]{placeholder.jpg} % Placeholder for ERD
+    \includegraphics[width=1.0\textwidth]{erd.png} % Placeholder for ERD
     \caption{Diagram ERD bazy danych}
     \label{fig:erd}
 \end{figure}
@@ -113,13 +115,16 @@ Poniższy diagram ERD (Entity Relationship Diagram) przedstawia szczegółowy sc
 Kluczowe encje w systemie to:
 
 \begin{itemize}
-    \item \textbf{users:} Przechowuje unikalne dane identyfikacyjne użytkowników (adres email, hash hasła) oraz dane profilowe.
-    \item \textbf{homes:} Reprezentuje pojedyncze gospodarstwo domowe. Posiada unikalny identyfikator oraz kod zaproszenia.
-    \item \textbf{home\_memberships:} Tabela asocjacyjna definiująca przynależność użytkownika do domu oraz jego rolę (np. ADMIN, MEMBER).
-    \item \textbf{tasks:} Tabela zadań zawierająca tytuł, opis, datę wykonania oraz status.
-    \item \textbf{task\_assignments:} Definiuje, który użytkownik jest odpowiedzialny za dane zadanie. Umożliwia przypisanie wielu osób do jednego zadania.
-    \item \textbf{bills:} Przechowuje informacje o rachunkach: kwotę całkowitą, datę płatności, wystawcę rachunku oraz status (opłacony/nieopłacony).
-    \item \textbf{shopping\_items} oraz \textbf{shopping\_categories:} Tabele obsługujące moduł zakupów, pozwalające na kategoryzację produktów.
+    \item \textbf{users:} Przechowuje unikalne dane identyfikacyjne użytkowników (adres email, hash hasła) oraz dane profilowe, w tym link do awatara i status weryfikacji konta.
+    \item \textbf{homes:} Reprezentuje pojedyncze gospodarstwo domowe. Posiada unikalny identyfikator, nazwę oraz unikalny kod zaproszenia (\textit{invite\_code}).
+    \item \textbf{home\_memberships:} Tabela asocjacyjna definiująca przynależność użytkownika do konkretnego domu wraz z przypisaną mu rolą oraz datą dołączenia.
+    \item \textbf{rooms:} Definiuje poszczególne pomieszczenia w obrębie danego domu (np. kuchnia, salon), co pozwala na precyzyjne przypisywanie zadań lub przedmiotów do lokalizacji.
+    \item \textbf{tasks:} Tabela zadań zawierająca nazwę, opis, typ harmonogramu (\textit{schedule\_type}) oraz powiązanie z konkretnym domem i pomieszczeniem.
+    \item \textbf{task\_assignments:} Tabela łącznikowa umożliwiająca przypisanie wielu użytkowników do jednego zadania wraz z rejestracją daty przypisania i statusu.
+    \item \textbf{bills:} Przechowuje szczegółowe informacje o rachunkach domowych, w tym kwotę (\textit{total\_amount}), okres rozliczeniowy, status płatności (\textit{is\_paid}) oraz dane w formacie JSON pochodzące z modułu OCR (\textit{ocr\_data}).
+    \item \textbf{expenses} oraz \textbf{expense\_shares:} Moduł zarządzania wydatkami. \textit{Expenses} przechowuje ogólne dane o wydatku, natomiast \textit{expense\_shares} definiuje podział tej kwoty na poszczególnych domowników wraz z informacją, czy dana część została już spłacona (\textit{paid}).
+    \item \textbf{shopping\_items} oraz \textbf{shopping\_category:} Obsługa listy zakupów. System pozwala na kategoryzację produktów, dodawanie zdjęć, linków oraz śledzenie, który użytkownik dodał produkt (\textit{added\_by}) i czy został on już zakupiony (\textit{is\_bought}).
+    \item \textbf{polls}, \textbf{option} oraz \textbf{votes:} Kompletny moduł ankiet. Pozwala na tworzenie pytań wewnątrz domu (\textit{polls}), definiowanie dostępnych opcji odpowiedzi (\textit{option}) oraz rejestrowanie pojedynczych głosów użytkowników (\textit{votes}).
 \end{itemize}
 
 \subsection{Modele GORM i relacje}
