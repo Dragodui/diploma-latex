@@ -35,217 +35,116 @@ Struktura katalogów projektu prezentuje się następująco:
 
 Do obsługi routingu wykorzystano bibliotekę \texttt{go-chi}. Definiuje ona drzewiastą strukturę ścieżek, co ułatwia zarządzanie dużą liczbą endpointów.
 
-\begin{lstlisting}[language=go, caption=Konfiguracja routingu dla zasobów Home, label=code:router]
-r.Group(func(r chi.Router) {
-	// Global rate limiter - 120 requests per minute
-	r.Use(middleware.RateLimitMiddleware(rateLimiter))
+\begin{lstlisting}[language=go, caption=Hierarchiczna struktura routingu i aplikowanie middleware, label=code:routing]
+r := chi.NewRouter()
 
-		r.Use(middleware.MetricsMiddleware)
-		// HTTP request logger
-		r.Use(middleware.RequestResponseLogger)
-		// Protected admin endpoints (Prometheus metrics and Swagger docs)
-		// Requires Basic Authentication
-		r.Group(func(r chi.Router) {
-			r.Use(middleware.BasicAuth(cfg.AdminUsername, cfg.AdminPassword))
+// 1. Globalne middleware (bezpieczenstwo, metryki, logowanie)
+r.Use(middleware.BodySizeLimit)
+r.Use(middleware.SecurityHeaders)
+r.Use(middleware.RateLimitMiddleware(rateLimiter))
+r.Use(middleware.RequestResponseLogger)
 
-			// Prometheus metrics - requires auth
-			r.Handle("/metrics", promhttp.Handler())
+r.Route("/api", func(r chi.Router) {
+    
+    // 2. Strefa publiczna z rygorystycznym limitem (Ochrona Brute-Force)
+    r.Route("/auth", func(r chi.Router) {
+        // Limit: 5 zapytan na minute
+        authLimit := middleware.StrictRateLimitMiddleware(rateLimiter, 5, 0.083)
+        r.With(authLimit).Post("/login", authHandler.Login)
+        r.With(authLimit).Post("/register", authHandler.Register)
+    })
 
-			// Swagger UI - requires auth
-			r.Get("/swagger/*", httpSwagger.WrapHandler)
-		})
+    // 3. Strefa chroniona tokenem JWT
+    r.Group(func(r chi.Router) {
+        r.Use(middleware.JWTAuth([]byte(cfg.JWTSecret), cache))
 
-		// API routes
-		r.Route("/api", func(r chi.Router) {
-			// Auth routes (no JWT required) - with strict rate limiting
-			r.Route("/auth", func(r chi.Router) {
-				// Strict rate limit for login/register: 5 requests per minute
-				authStrictLimit := middleware.StrictRateLimitMiddleware(rateLimiter, 5, 0.083) // 5 tokens, refill 0.083/sec = 5/min
+        // 4. Zagniezdzone zasoby z weryfikacja uprawnien (RBAC)
+        r.Route("/homes/{home_id}", func(r chi.Router) {
+            
+            // Tylko czlonek domu moze pobrac szczegoly
+            r.With(middleware.RequireMember(homeRepo)).Get("/", homeHandler.GetByID)
+            // Tylko administrator moze usunac dom
+            r.With(middleware.RequireAdmin(homeRepo)).Delete("/", homeHandler.Delete)
 
-				r.With(authStrictLimit).Post("/register", authHandler.Register)
-				r.With(authStrictLimit).Post("/login", authHandler.Login)
-				r.With(authStrictLimit).Post("/google/mobile", authHandler.GoogleSignIn)
+            // Modul zadan w kontekscie konkretnego domu
+            r.Route("/tasks", func(r chi.Router) {
+                r.With(middleware.RequireMember(homeRepo)).Post("/", taskHandler.Create)
+                r.With(middleware.RequireMember(homeRepo)).Get("/", taskHandler.GetTasksByHomeID)
+            })
+        })
+    })
+})
+\end{lstlisting}
+\section{Mechanizmy oprogramowania pośredniczącego (Middleware)}
 
-				// OAuth endpoints - moderate limit
-				r.Get("/{provider}", authHandler.SignInWithProvider)
-				r.Get("/{provider}/callback", authHandler.CallbackHandler)
+Warstwa oprogramowania pośredniczącego w systemie ,,Household Manager'' nie ogranicza się jedynie do prostego sprawdzania tokenów. Zaimplementowano w niej szereg zaawansowanych wzorców projektowych, które rozwiązują typowe problemy wydajnościowe i bezpieczeństwa w aplikacjach webowych.
 
-				// Email verification - no limit for verify (one-time use token)
-				r.Get("/verify", authHandler.VerifyEmail)
+\subsection{Ochrona przed atakami i manipulacją (Security)}
 
-				// Email verification regenerate - strict limit: 3 requests per 5 minutes (prevents spam)
-				verifyRegenerateLimit := middleware.StrictRateLimitMiddleware(rateLimiter, 3, 0.01) // 3 tokens, refill 0.01/sec = 0.6/min
-				r.With(verifyRegenerateLimit).Get("/verify/regenerate", authHandler.RegenerateVerify)
+Wdrożono kilka kluczowych mechanizmów obronnych na najniższym poziomie obsługi żądań HTTP:
+\begin{itemize}
+    \item \textbf{Ochrona przed atakami typu Timing Attack:} W kontrolerze autoryzacji administracyjnej (\texttt{BasicAuth}) zastosowano funkcję \texttt{subtle.ConstantTimeCompare}. Gwarantuje ona, że czas weryfikacji poświadczeń jest zawsze taki sam, niezależnie od tego, czy hasło jest poprawne czy nie, co uniemożliwia atakującym odgadnięcie hasła na podstawie czasu odpowiedzi serwera.
+    \item \textbf{Limitowanie wielkości ładunku (Payload):} Middleware \texttt{BodySizeLimit} wykorzystuje strukturę \texttt{http.MaxBytesReader}. Wymusza ona przerwanie połączenia, jeśli klient próbuje wysłać ciało żądania większe niż 10 MB. Zabezpiecza to serwer przed atakami typu \textit{Denial of Service} (DoS) polegającymi na wyczerpaniu pamięci operacyjnej (OOM).
+\end{itemize}
 
-				// Password reset - very strict: 3 requests per 5 minutes
-				resetStrictLimit := middleware.StrictRateLimitMiddleware(rateLimiter, 3, 0.01) // 3 tokens, refill 0.01/sec = 0.6/min
-				r.With(resetStrictLimit).Post("/forgot", authHandler.ForgotPassword)
-				r.With(resetStrictLimit).Post("/reset", authHandler.ResetPassword)
-			})
+\subsection{Współbieżność i optymalizacja w Rate Limiterze}
 
-			// Protected routes
-			r.Group(func(r chi.Router) {
-				// JWT authentication for all following routes
-				r.Use(middleware.JWTAuth([]byte(cfg.JWTSecret), cache))
+Mechanizm \texttt{StrictRateLimitMiddleware} realizuje rygorystyczne ograniczanie liczby zapytań dla wrażliwych endpointów (np. 5 zapytań na minutę dla logowania). Ponieważ środowisko Go w sposób natywny obsługuje żądania HTTP współbieżnie (każde żądanie to osobna \textit{goroutine}), dostęp do mapy przechowującej limity dla poszczególnych adresów IP musiał zostać zsynchronizowany.
 
-				// Change password (authenticated)
-				changePasswordLimit := middleware.StrictRateLimitMiddleware(rateLimiter, 5, 0.083)
-				r.With(changePasswordLimit).Post("/auth/change-password", authHandler.ChangePassword)
+W tym celu wykorzystano muteks sprzętowy odczytu i zapisu (\texttt{sync.RWMutex}) oraz wzorzec podwójnego sprawdzania (ang. \textit{double-checked locking}).
 
-				// Logout (authenticated)
-				r.Post("/auth/logout", authHandler.Logout)
+\begin{lstlisting}[language=go, caption=Optymalizacja współbieżnego dostępu w Rate Limiterze, label=code:mutex]
+// Szybka ścieżka: blokada tylko do odczytu (RLock)
+mu.RLock()
+strictLimiter, exists := strictLimiters[ip]
+mu.RUnlock()
 
-				// User routes
-				r.Post("/user", userHandler.GetMe)
-				r.Patch("/user", userHandler.Update)
-
-				// Upload images - limited to 10 per minute
-				uploadLimit := middleware.StrictRateLimitMiddleware(rateLimiter, 10, 0.167) // 10 tokens, refill 0.167/sec = 10/min
-				r.With(uploadLimit).Post("/upload", imageHandler.UploadImage)
-
-				// OCR processing - limited to 5 per minute (resource intensive)
-				ocrLimit := middleware.StrictRateLimitMiddleware(rateLimiter, 5, 0.083) // 5 tokens, refill 0.083/sec = 5/min
-				r.With(ocrLimit).Post("/ocr/process", ocrHandler.ProcessImage)
-
-				// Homes and nested resources
-				r.Route("/homes", func(r chi.Router) {
-					r.Post("/create", homeHandler.Create) // Create home
-					r.Post("/join", homeHandler.Join)     // Join home
-					r.Get("/my", homeHandler.GetUserHome) // Get user home
-
-					// Notifications for user
-					r.Route("/notifications", func(r chi.Router) {
-						r.Get("/", notificationHandler.GetByUserID)
-						r.Delete("/{notification_id}", notificationHandler.MarkAsRead)
-					})
-
-					// Home-specific actions
-					r.Route("/{home_id}", func(r chi.Router) {
-						r.With(middleware.RequireMember(homeRepo)).Get("/", homeHandler.GetByID)
-						r.With(middleware.RequireAdmin(homeRepo)).Delete("/", homeHandler.Delete)
-						r.With(middleware.RequireMember(homeRepo)).Post("/leave", homeHandler.Leave)
-						r.With(middleware.RequireAdmin(homeRepo)).Delete("/members/{user_id}", homeHandler.RemoveMember)
-						r.With(middleware.RequireAdmin(homeRepo)).Post("/regenerate_code", homeHandler.RegenerateInviteCode)
-
-						// Notifications for home
-						r.Route("/notifications", func(r chi.Router) {
-							r.Get("/", notificationHandler.GetByHomeID)
-							r.Delete("/{notification_id}", notificationHandler.MarkAsReadForHome)
-						})
-
-						// Rooms under a home
-						r.Route("/rooms", func(r chi.Router) {
-							r.With(middleware.RequireAdmin(homeRepo)).Post("/", roomHandler.Create)
-							r.With(middleware.RequireMember(homeRepo)).Get("/", roomHandler.GetByHomeID)
-							r.With(middleware.RequireMember(homeRepo)).Get("/{room_id}", roomHandler.GetByID)
-							r.With(middleware.RequireMember(homeRepo)).Get("/{room_id}/devices", smartHomeHandler.GetDevicesByRoom)
-							r.With(middleware.RequireMember(homeRepo)).Delete("/{room_id}", roomHandler.Delete)
-						})
-
-						// Tasks under a home
-						r.Route("/tasks", func(r chi.Router) {
-							r.With(middleware.RequireMember(homeRepo)).Post("/", taskHandler.Create)
-							r.With(middleware.RequireMember(homeRepo)).Get("/", taskHandler.GetTasksByHomeID)
-							r.With(middleware.RequireMember(homeRepo)).Get("/{task_id}", taskHandler.GetByID)
-							r.With(middleware.RequireMember(homeRepo)).Delete("/{task_id}", taskHandler.DeleteTask)
-							// Assignments
-							r.With(middleware.RequireMember(homeRepo)).Post("/{task_id}/assign", taskHandler.AssignUser)
-							r.With(middleware.RequireMember(homeRepo)).Patch("/{task_id}/reassign-room", taskHandler.ReassignRoom)
-							r.With(middleware.RequireMember(homeRepo)).Patch("/{task_id}/mark-completed", taskHandler.MarkAssignmentCompleted)
-							r.With(middleware.RequireMember(homeRepo)).Patch("/{task_id}/mark-uncompleted", taskHandler.MarkAssignmentUncompleted)
-							r.With(middleware.RequireMember(homeRepo)).Patch("/{task_id}/complete", taskHandler.MarkTaskCompleted)
-							r.With(middleware.RequireMember(homeRepo)).Delete("/{task_id}/assignments/{assignment_id}", taskHandler.DeleteAssignment)
-						})
-
-						// User assignments (not scoped to a specific home)
-						r.Route("/users/{user_id}/assignments", func(r chi.Router) {
-							r.With(middleware.RequireMember(homeRepo)).Get("/", taskHandler.GetAssignmentsForUser)
-							r.With(middleware.RequireMember(homeRepo)).Get("/closest", taskHandler.GetClosestAssignmentForUser)
-						})
-
-						// Bills under a home
-						r.Route("/bills", func(r chi.Router) {
-							r.With(middleware.RequireMember(homeRepo)).Get("/", billHandler.GetByHomeID)
-							r.With(middleware.RequireMember(homeRepo)).Post("/", billHandler.Create)
-							r.With(middleware.RequireMember(homeRepo)).Get("/{bill_id}", billHandler.GetByID)
-							r.With(middleware.RequireMember(homeRepo)).Delete("/{bill_id}", billHandler.Delete)
-							r.With(middleware.RequireMember(homeRepo)).Patch("/{bill_id}", billHandler.MarkPayed)
-						})
-
-						// Bill Categories
-						r.Route("/bill-categories", func(r chi.Router) {
-							r.With(middleware.RequireMember(homeRepo)).Get("/", billCategoryHandler.GetAll)
-							r.With(middleware.RequireMember(homeRepo)).Post("/", billCategoryHandler.Create)
-							r.With(middleware.RequireMember(homeRepo)).Delete("/{category_id}", billCategoryHandler.Delete)
-							r.With(middleware.RequireMember(homeRepo)).Patch("/{category_id}", billCategoryHandler.Update)
-						})
-
-						// Shopping
-						r.Route("/shopping", func(r chi.Router) {
-							r.Route("/categories", func(r chi.Router) {
-								r.With(middleware.RequireMember(homeRepo)).Post("/", shoppingHandler.CreateCategory)
-								r.With(middleware.RequireMember(homeRepo)).Get("/all", shoppingHandler.GetAllCategories)
-								r.With(middleware.RequireMember(homeRepo)).Get("/{category_id}", shoppingHandler.GetCategoryByID)
-								r.With(middleware.RequireMember(homeRepo)).Get("/{category_id}/items", shoppingHandler.GetItemsByCategoryID)
-								r.With(middleware.RequireMember(homeRepo)).Delete("/{category_id}", shoppingHandler.DeleteCategory)
-								r.With(middleware.RequireMember(homeRepo)).Put("/{category_id}", shoppingHandler.EditCategory)
-							})
-							r.Route("/items", func(r chi.Router) {
-								r.With(middleware.RequireMember(homeRepo)).Post("/", shoppingHandler.CreateItem)
-								r.With(middleware.RequireMember(homeRepo)).Get("/{item_id}", shoppingHandler.GetItemByID)
-								r.With(middleware.RequireMember(homeRepo)).Delete("/{item_id}", shoppingHandler.DeleteItem)
-								r.With(middleware.RequireMember(homeRepo)).Put("/{item_id}", shoppingHandler.EditItem)
-								r.With(middleware.RequireMember(homeRepo)).Patch("/{item_id}", shoppingHandler.MarkIsBought)
-							})
-						})
-						r.Route("/polls", func(r chi.Router) {
-
-							r.With(middleware.RequireAdmin(homeRepo)).Post("/", pollHandler.Create)
-							r.With(middleware.RequireMember(homeRepo)).Get("/", pollHandler.GetAllByHomeID)
-							r.With(middleware.RequireMember(homeRepo)).Get("/{poll_id}", pollHandler.GetByID)
-
-							r.With(middleware.RequireAdmin(homeRepo)).Patch("/{poll_id}/close", pollHandler.Close)
-
-							r.With(middleware.RequireMember(homeRepo)).Delete("/{poll_id}", pollHandler.Delete)
-
-							r.With(middleware.RequireMember(homeRepo)).Post("/{poll_id}/vote", pollHandler.Vote)
-							r.With(middleware.RequireMember(homeRepo)).Delete("/{poll_id}/vote", pollHandler.Unvote)
-						})
-
-						// Smart Home (Home Assistant integration)
-						r.Route("/smarthome", func(r chi.Router) {
-							r.With(middleware.RequireAdmin(homeRepo)).Post("/connect", smartHomeHandler.Connect)
-							r.With(middleware.RequireAdmin(homeRepo)).Delete("/disconnect", smartHomeHandler.Disconnect)
-							r.With(middleware.RequireMember(homeRepo)).Get("/status", smartHomeHandler.Status)
-							r.With(middleware.RequireMember(homeRepo)).Get("/discover", smartHomeHandler.Discover)
-							r.With(middleware.RequireMember(homeRepo)).Get("/states", smartHomeHandler.GetAllStates)
-
-							// Device control - rate limited to prevent abuse
-							deviceControlLimit := middleware.StrictRateLimitMiddleware(rateLimiter, 30, 0.5) // 30 tokens, refill 0.5/sec = 30/min
-
-							r.Route("/devices", func(r chi.Router) {
-								r.With(middleware.RequireMember(homeRepo)).Post("/", smartHomeHandler.AddDevice)
-								r.With(middleware.RequireMember(homeRepo)).Get("/", smartHomeHandler.GetDevices)
-								r.With(middleware.RequireMember(homeRepo)).Get("/{device_id}", smartHomeHandler.GetDevice)
-								r.With(middleware.RequireAdmin(homeRepo)).Put("/{device_id}", smartHomeHandler.UpdateDevice)
-								r.With(middleware.RequireAdmin(homeRepo)).Delete("/{device_id}", smartHomeHandler.DeleteDevice)
-								r.With(middleware.RequireMember(homeRepo), deviceControlLimit).Post("/{device_id}/control", smartHomeHandler.ControlDevice)
-							})
-						})
-					})
-				})
-			})
-		})
-	})
+if !exists {
+    // Wolna ścieżka: blokada zapisu z ponownym sprawdzeniem
+    mu.Lock()
+    strictLimiter, exists = strictLimiters[ip] // Double-check
+    if !exists {
+        strictLimiter = ratelimiter.NewRateLimiter(maxRequests, refillRate)
+        strictLimiters[ip] = strictLimiter
+    }
+    mu.Unlock()
+}
 \end{lstlisting}
 
+Takie podejście (\textit{fast path / slow path}) drastycznie zmniejsza rywalizację o blokadę (ang. \textit{lock contention}), pozwalając na równoległe przetwarzanie tysięcy żądań z różnych adresów IP bez blokowania całego serwera. W middleware uwzględniono również obsługę serwerów proxy (Proxy/Load Balancer), ekstrahując prawdziwy adres IP użytkownika z nagłówków \texttt{X-Forwarded-For} oraz \texttt{X-Real-IP}.
+
+\subsection{Inspekcja ładunku z użyciem strumieni (io.TeeReader)}
+
+Problem walidacji uprawnień (RBAC) w architekturze REST często polega na tym, że identyfikator zasobu (np. \texttt{home\_id}) może znajdować się nie tylko w adresie URL, ale również w ciele żądania JSON. W języku Go odczytanie ciała żądania (\texttt{r.Body}) powoduje opróżnienie bufora, uniemożliwiając docelowemu kontrolerowi ponowne jego przetworzenie.
+
+Aby rozwiązać ten problem w middleware \texttt{RequireMember}, zastosowano wzorzec architektoniczny oparty na \texttt{io.TeeReader}.
+
+\begin{lstlisting}[language=go, caption=Kopiowanie strumienia danych w locie przy użyciu TeeReader, label=code:teereader]
+var bodyCopy bytes.Buffer
+// TeeReader duplikuje strumien danych w locie podczas dekodowania
+tee := io.TeeReader(r.Body, &bodyCopy)
+
+var req bodyWithHomeID
+if err := json.NewDecoder(tee).Decode(&req); err == nil && req.HomeID != 0 {
+    // Odtworzenie oryginalnego ciała żądania dla kolejnych handlerów
+    r.Body = io.NopCloser(&bodyCopy)
+}
+\end{lstlisting}
+
+Rozwiązanie to pozwala na inspekcję ładunku JSON w warstwie bezpieczeństwa, weryfikację w bazie danych czy użytkownik należy do danego domu, a następnie przekazanie nienaruszonego strumienia do docelowej logiki biznesowej, z zachowaniem wysokiej wydajności pamięciowej.
+
+\subsection{Wzorzec Dekoratora w telemetrii i logowaniu}
+
+Standardowy interfejs \texttt{http.ResponseWriter} w Go nie przechowuje informacji o kodzie statusu po jego wysłaniu do klienta. Aby umożliwić zbieranie metryk dla systemu Prometheus oraz generowanie logów, zastosowano wzorzec projektowy Dekoratora (ang. \textit{Decorator Pattern}).
+
+Zdefiniowano własną strukturę \texttt{responseWriter}, która opakowuje (ang. \textit{wraps}) oryginalny interfejs, nadpisując metody \texttt{WriteHeader} oraz \texttt{Write}. Dzięki temu middleware jest w stanie przechwycić kod błędu (np. 404 lub 500) oraz zliczyć ilość wysłanych bajtów, co pozwala na generowanie precyzyjnych statystyk działania systemu (np. czas odpowiedzi \texttt{HttpRequestDuration} mierzony w sekundach) bez ingerencji w kod samych kontrolerów.
 \subsection{Dokumentacja API (Swagger)}
 
 Wszystkie endpointy zostały udokumentowane przy użyciu standardu OpenAPI (Swagger). Poniższy zrzut ekranu przedstawia interaktywną dokumentację wygenerowaną automatycznie.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\textwidth]{placeholder.jpg} % Placeholder for Swagger UI
+    \includegraphics[width=0.95\textwidth]{swagger.png} % Placeholder for Swagger UI
     \caption{Dokumentacja API w Swagger UI}
     \label{fig:swagger}
 \end{figure}
@@ -302,38 +201,128 @@ Wszystkie błędy zwracane przez API mają ujednoliconą strukturę JSON, co uł
 }
 \end{lstlisting}
 
-\section{Integracja z OCR dla rachunków}
+\section{Integracja z AI i moduł OCR dla rachunków}
 
-Moduł OCR (\textit{Optical Character Recognition}) umożliwia automatyczne zaczytywanie danych z rachunków. Logika parsowania tekstu z paragonu opiera się na wyrażeniach regularnych (Regex), które poszukują wzorców dat i kwot.
+W celu automatyzacji wprowadzania danych z rachunków, zrezygnowano z klasycznych silników OCR (np. Tesseract) oraz zawodnych wyrażeń regularnych (Regex) na rzecz multimodalnego modelu sztucznej inteligencji \textbf{Google Gemini API}.
 
-Fragment serwisu odpowiedzialnego za analizę tekstu z paragonu:
+Proces ekstrakcji danych przebiega następująco:
+\begin{enumerate}
+    \item Aplikacja mobilna kompresuje zdjęcie paragonu i wysyła je na serwer.
+    \item Serwer transformuje obraz do formatu Base64 i konstruuje tzw. \textit{prompt} (zapytanie) dla modelu LLM, wymuszając odpowiedź w ścisłym formacie JSON.
+    \item Model Gemini analizuje obraz semantycznie, rozpoznając nazwę sklepu, datę, poszczególne pozycje na rachunku oraz kwotę całkowitą.
+\end{enumerate}
 
-\begin{lstlisting}[language=go, caption=Logika parsowania tekstu z paragonu, label=code:ocr_logic]
-func (s *OCRService) ParseReceiptText(text string) (float64, string) {
-    // Regex dla kwot (np. 123.45, 123,45 PLN)
-    amountRegex := regexp.MustCompile(`(\d+[.,]\d{2})\s*(?:PLN|zl|EUR)?`)
-    
-    lines := strings.Split(text, "\n")
-    var maxAmount float64
-    var vendor string
+Aby uniknąć zjawiska tzw. halucynacji AI (zwracania niepoprawnych danych), zaimplementowano autorski algorytm weryfikujący wiarygodność odpowiedzi (\textit{Confidence Score}).
 
-    for i, line := range lines {
-        if i == 0 {
-            vendor = line // Zalozenie: pierwsza linia to nazwa sklepu
+\begin{lstlisting}[language=go, caption=Algorytm weryfikacji matematycznej danych z Gemini, label=code:confidence]
+func calculateGeminiConfidence(result *models.OCRResult) float64 {
+    score := 0.0
+    checks := 4.0 // Podstawowe pola: vendor, date, total, items
+
+    // ... [sprawdzanie obecności podstawowych pól] ...
+
+    // Weryfikacja matematyczna: czy suma pozycji zgadza się z kwotą Total?
+    if len(result.Items) > 0 && result.Total > 0 {
+        checks++
+        itemsTotal := 0.0
+        for _, item := range result.Items {
+            itemsTotal += item.Price
         }
-        matches := amountRegex.FindStringSubmatch(line)
-        if len(matches) > 1 {
-            // Konwersja przecinka na kropke i parsowanie float
-            val, err := strconv.ParseFloat(strings.Replace(matches[1], ",", ".", 1), 64)
-            if err == nil && val > maxAmount {
-                maxAmount = val // Szukamy najwiekszej kwoty (Suma)
-            }
+        
+        // Obliczenie różnicy (tolerancja bledu 10%)
+        diff := math.Abs(itemsTotal - result.Total)
+        if diff/result.Total < 0.1 {
+            score++
         }
     }
-    return maxAmount, vendor
+    return score / checks
+}
+\end{lstlisting}
+\section{Komunikacja w czasie rzeczywistym (WebSockets)}
+
+Aby zapewnić spójność danych dla wszystkich domowników w czasie rzeczywistym, system wykorzystuje protokół \textbf{WebSocket}. Jest on inicjowany poprzez publiczny endpoint \texttt{/ws}, a autoryzacja odbywa się poprzez przekazanie tokena JWT w pierwszym komunikacie po nawiązaniu połączenia.
+
+Dzięki temu, gdy jeden użytkownik oznaczy zadanie jako wykonane lub odhaczy produkt na liście zakupów, pozostali członkowie domu otrzymują natychmiastowe powiadomienie bez konieczności odświeżania widoku aplikacji (eliminacja zasobochłonnej techniki \textit{long-polling}).
+
+Poniższy fragment kodu przedstawia proces nawiązywania połączenia, w którym standardowe zapytanie HTTP jest podnoszone (ang. \textit{upgrade}) do dwukierunkowego strumienia WebSocket, a następnie autoryzowane.
+
+\begin{lstlisting}[language=go, caption=Inicjalizacja i autoryzacja połączenia WebSocket, label=code:websocket]
+var upgrader = websocket.Upgrader{
+    CheckOrigin: func(r *http.Request) bool { return true }, // Obsluga CORS
+}
+
+func (h *WSHandler) HandleWS(w http.ResponseWriter, r *http.Request, cache *redis.Client) {
+    // 1. Podniesienie polaczenia HTTP do WebSocket
+    conn, err := upgrader.Upgrade(w, r, nil)
+    if err != nil {
+        return
+    }
+    defer conn.Close()
+
+    // 2. Oczekiwanie na pierwsza wiadomosc z tokenem autoryzacyjnym
+    var authMsg struct {
+        Token string `json:"token"`
+    }
+    if err := conn.ReadJSON(&authMsg); err != nil {
+        return // Zamknij polaczenie w przypadku bledu
+    }
+
+    // 3. Walidacja tokena JWT
+    claims, err := security.ParseToken(authMsg.Token, h.secret)
+    if err != nil {
+        conn.WriteJSON(map[string]string{"error": "unauthorized"})
+        return
+    }
+
+    // 4. Rejestracja autoryzowanego klienta w Hubie powiadomien
+    client := NewClient(conn, claims.UserID)
+    h.hub.Register <- client
+    client.ReadPump() // Rozpoczecie nasluchiwania
 }
 \end{lstlisting}
 
+
+
+\section{Integracja z systemami Smart Home (IoT)}
+
+Unikalną cechą systemu ,,Household Manager'' jest wbudowany moduł integracji z lokalnymi serwerami \textbf{Home Assistant}. Serwer w języku Go pełni rolę pośrednika (Mostu) między chmurową aplikacją mobilną a urządzeniami IoT w domu użytkownika. Zaimplementowano bezpieczne endpointy pozwalające na automatyczne wykrywanie urządzeń (Discover), odczyt stanów sensorów oraz zdalne sterowanie.
+
+Sterowanie urządzeniami fizycznymi (np. włączanie inteligentnych żarówek lub gniazdek) realizowane jest poprzez bezpieczną komunikację z REST API serwera Home Assistant przy użyciu długoterminowych tokenów dostępu (LLAT - \textit{Long-Lived Access Tokens}).
+
+\begin{lstlisting}[language=go, caption=Wysyłanie komend do serwera Home Assistant, label=code:smarthome]
+func (s *SmartHomeService) ControlDevice(ctx context.Context, entityID string, action string) error {
+    // 1. Budowa adresu URL docelowego serwera Home Assistant
+    // np. /api/services/light/turn_on
+    domain := strings.Split(entityID, ".")[0]
+    url := fmt.Sprintf("%s/api/services/%s/%s", s.haBaseURL, domain, action)
+    
+    // 2. Przygotowanie ladunku z identyfikatorem urzadzenia
+    payload := map[string]string{"entity_id": entityID}
+    jsonBody, _ := json.Marshal(payload)
+
+    req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(jsonBody))
+    if err != nil {
+        return err
+    }
+
+    // 3. Autoryzacja z serwerem IoT
+    req.Header.Set("Authorization", "Bearer "+s.haToken)
+    req.Header.Set("Content-Type", "application/json")
+
+    // 4. Wykonanie zapytania z 5-sekundowym timeoutem
+    client := &http.Client{Timeout: 5 * time.Second}
+    resp, err := client.Do(req)
+    if err != nil || resp.StatusCode >= 400 {
+        return fmt.Errorf("failed to control device: %v", err)
+    }
+    
+    return nil
+}
+\end{lstlisting}
+
+
+
+Aby zapobiec nadużyciom i przeciążeniu lokalnej sieci IoT, endpointy sterujące urządzeniami zostały zabezpieczone dedykowanym mechanizmem \textit{Rate Limitingu}, zezwalającym na maksymalnie 30 akcji na minutę z jednego konta.
 \section{Struktura projektu frontend}
 
 Aplikacja kliencka w React Native wykorzystuje \textbf{Expo Router}, który opiera routing na strukturze plików (File-based routing), podobnie jak framework Next.js.
