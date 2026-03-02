@@ -1,7 +1,7 @@
 \chapter{Wybór technologii}
 \label{rozdzial3}
 
-Wybór odpowiednich technologii jest kluczowym etapem procesu wytwarzania oprogramowania, mającym bezpośredni wpływ na wydajność, skalowalność, bezpieczeństwo oraz łatwość późniejszego utrzymania systemu (maintainability). Decyzje podjęte na tym etapie determinują szybkość procesu deweloperskiego oraz komfort pracy programistów. W niniejszym rozdziale przedstawiono szczegółową charakterystykę stosu technologicznego (tech stack) wykorzystanego do realizacji projektu ,,Household Manager''.
+Wybór odpowiednich technologii jest kluczowym etapem procesu wytwarzania oprogramowania, mającym bezpośredni wpływ na wydajność, skalowalność, bezpieczeństwo oraz łatwość późniejszego utrzymania systemu (maintainability). Decyzje podjęte na tym etapie determinują szybkość procesu deweloperskiego oraz komfort pracy programistów. W niniejszym rozdziale przedstawiono szczegółową charakterystykę stosu technologicznego wykorzystanego do realizacji projektu ,,Household Manager''.
 
 \section{Backend — Go, GORM, PostgreSQL, Chi Router}
 
@@ -9,9 +9,10 @@ Warstwa serwerowa (backend) stanowi mózg aplikacji, odpowiadający za logikę b
 
 \subsection{Uzasadnienie wyboru Go}
 
-Język Go został stworzony w firmie Google w 2007 roku przez Roberta Griesemera, Roba Pike'a i Kena Thompsona. Jego pierwsza stabilna wersja ukazała się w 2012 roku. Go powstał jako odpowiedź na problemy związane z zarządzaniem dużymi bazami kodu, długim czasem kompilacji oraz trudnościami w pisaniu wydajnego kodu współbieżnego w starszych językach, takich jak C++ czy Java.
+Wybór języka Go (Golang) jako fundamentu warstwy serwerowej podyktowany był potrzebą zapewnienia wysokiej wydajności oraz niezawodności przy jednoczesnej prostocie implementacji logiki biznesowej. Jako język nowoczesny, rozwijany przez firmę Google, Go adresuje problemy znane ze starszych technologii, takie jak długi czas kompilacji czy skomplikowane zarządzanie pamięcią.
 
-Główne powody wyboru Go do tego projektu to:
+
+Główne powody wyboru tej technologii to:
 
 \begin{enumerate}
     \item \textbf{Wydajność kompilowana:} Go jest językiem kompilowanym bezpośrednio do kodu maszynowego, co sprawia, że aplikacje napisane w Go są znacznie szybsze niż te uruchamiane w środowiskach interpretowanych (jak Python czy JavaScript/Node.js). Nie wymaga maszyny wirtualnej (JVM), co przekłada się na mniejsze zużycie pamięci RAM i szybszy start aplikacji.
@@ -27,51 +28,71 @@ W porównaniu do popularnego Node.js, Go oferuje lepszą wydajność obliczeniow
 
 \subsection{Framework i biblioteki backendowe}
 
-W ekosystemie Go panuje tendencja do unikania "kobyłowatych" frameworków typu "wszystko w jednym" (jak Django w Pythonie czy Spring w Javie) na rzecz komponowania aplikacji z mniejszych, wyspecjalizowanych bibliotek. W projekcie wykorzystano:
+W ekosystemie Go panuje tendencja do unikania rozbudowanych frameworków na rzecz komponowania aplikacji z mniejszych, wyspecjalizowanych bibliotek. W projekcie wykorzystano następujące rozwiązania:
 
 \begin{itemize}
     \item \textbf{Chi Router:}
-    Chi to lekki, szybki i idiomatyczny router HTTP dla Go. Jego główną zaletą jest pełna kompatybilność ze standardowym interfejsem \texttt{net/http}. Chi nie narzuca struktury aplikacji, ale oferuje potężny system \textit{middleware} (oprogramowania pośredniczącego). Middleware w Chi pozwala na łatwe "opinanie" handlerów dodatkową logiką, taką jak logowanie żądań, obsługa CORS, kompresja GZIP czy weryfikacja tokenów JWT, w sposób deklaratywny i czytelny.
+    Lekki i szybki router HTTP, w pełni kompatybilny ze standardową biblioteką \texttt{net/http}. Wykorzystano go do budowy przejrzystego systemu \textit{middleware}, odpowiadającego za logowanie żądań, obsługę polityki CORS oraz weryfikację tokenów JWT. Chi zapewnia wysoką czytelność kodu przy minimalnym narzucie wydajnościowym.
     
     \item \textbf{GORM (Go Object Relational Mapping):}
-    Jest to najpopularniejsza biblioteka ORM dla Go. Umożliwia ona pracę z bazą danych przy użyciu obiektów (struktur), a nie surowego SQL. GORM automatyzuje wiele powtarzalnych czynności: mapowanie wyników zapytań na struktury, obsługę transakcji, a także zarządzanie relacjami (one-to-one, one-to-many, many-to-many). Dzięki mechanizmowi \textit{Hooks}, GORM pozwala również na wykonywanie akcji przed lub po zapisie danych (np. automatyczne haszowanie hasła przed zapisem użytkownika).
+    Biblioteka typu ORM, która umożliwiła mapowanie struktur języka Go na relacje w bazie PostgreSQL. GORM został wykorzystany do automatyzacji operacji CRUD, obsługi złożonych relacji między encjami (np. \textit{many-to-many} dla członków domu) oraz zarządzania migracjami schematu bazy danych.
     
-    \item \textbf{Gosseract:}
-    Jest to wrapper (interfejs) dla języka Go do popularnego silnika OCR Tesseract, rozwijanego przez Google. Tesseract wykorzystuje sieci neuronowe (LSTM - Long Short-Term Memory) do rozpoznawania tekstu na obrazach. Biblioteka Gosseract umożliwia łatwe przekazanie obrazu (z pliku lub bufora pamięci) do silnika C++ Tesseracta i odebranie wynikowego tekstu, który następnie jest parsowany przez logikę aplikacji w celu znalezienia kwot i dat na rachunkach.
+    \item \textbf{Google Gemini API (Generative AI):}
+    Zamiast klasycznych silników OCR, w systemie wykorzystano zaawansowany model multimodalny \textit{Gemini 1.5 Flash}. Pozwala on nie tylko na odczyt tekstu (OCR), ale również na jego semantyczną analizę i strukturyzację danych w formacie JSON.
+    
+    
+    
+    \item \textbf{Google Cloud SDK / HTTP Client:}
+    Do komunikacji z modelem Gemini wykorzystano natywny klient HTTP języka Go. Implementacja (usługa \texttt{OCRService}) obejmuje bezpieczne przesyłanie obrazów zakodowanych w standardzie Base64 oraz autorski algorytm \texttt{calculateGeminiConfidence}, który ocenia wiarygodność zwróconych danych (np. poprzez weryfikację sumy pozycji paragonu z kwotą całkowitą).
 \end{itemize}
+W pracy dyplomowej najlepiej wygląda układ, w którym każda kluczowa technologia ma swój dedykowany podpunkt. Pozwala to recenzentowi szybko odnaleźć konkretne narzędzia i ocenić, czy student rozumie ich rolę w projekcie.
+
+Oto kompletna, rozbudowana sekcja o froncie, przygotowana w sposób najbardziej "dyplomowy" (oddzielne podpunkty dla każdego narzędzia).
 
 \section{Frontend — React Native, Expo, TypeScript}
 
-Warstwa kliencka (aplikacja mobilna) została zrealizowana w technologii \textbf{React Native}, która umożliwia tworzenie natywnych aplikacji na systemy Android i iOS przy użyciu języka JavaScript/TypeScript i biblioteki React.
+Warstwa kliencka (aplikacja mobilna) została zrealizowana w architekturze opartej na komponentach, co zapewnia modularność kodu i łatwość rozbudowy interfejsu użytkownika.
 
-\subsection{Charakterystyka React Native}
+\subsection{React Native i architektura komponentowa}
 
-React Native, stworzony przez Facebooka (Meta), różni się od rozwiązań hybrydowych (jak Ionic czy Cordova) tym, że nie renderuje interfejsu w komponencie WebView (przeglądarce internetowej). Zamiast tego, kod JavaScript komunikuje się z natywnym API platformy poprzez tzw. "Most" (Bridge) lub - w nowszej architekturze - poprzez JSI (JavaScript Interface).
-Dzięki temu, komponenty używane w kodzie (np. \texttt{<View>}, \texttt{<Text>}) są tłumaczone na natywne widoki systemowe (\texttt{android.view.View}, \texttt{UIView}). Zapewnia to wydajność i odczucia z użytkowania (Look and Feel) zbliżone do aplikacji pisanych w Javie czy Swifcie, przy zachowaniu wspólnego kodu dla obu platform (tzw. \textit{Code Sharing} na poziomie 90-95\%).
+React Native, stworzony przez firmę Meta, jest frameworkiem pozwalającym na budowanie natywnych aplikacji mobilnych przy użyciu biblioteki React. W przeciwieństwie do rozwiązań hybrydowych, React Native nie korzysta z widoków przeglądarkowych (\textit{WebView}), lecz mapuje komponenty JavaScript na natywne widoki systemów iOS i Android. Zapewnia to wysoką wydajność interfejsu oraz dostęp do płynnych animacji systemowych. Wykorzystanie paradygmatu deklaratywnego UI pozwala na automatyczne aktualizowanie widoku w odpowiedzi na zmiany stanu aplikacji.
 
-Wykorzystanie składni JSX (JavaScript XML) pozwala na deklaratywne tworzenie interfejsu użytkownika, co znacznie ułatwia budowanie skomplikowanych widoków z mniejszych, reużywalnych komponentów.
+\subsection{Język TypeScript}
 
-\subsection{Platforma Expo}
-
-Projekt wykorzystuje platformę \textbf{Expo} - zestaw narzędzi i usług zbudowanych wokół React Native. Decyzja o użyciu Expo zamiast "czystego" React Native CLI (Bare Workflow) wynika z kilku korzyści:
+W projekcie zdecydowano się na użycie języka \textbf{TypeScript} jako nadzbioru języka JavaScript. TypeScript wprowadza statyczne typowanie, co w kontekście pracy inżynierskiej przynosi następujące korzyści:
 \begin{itemize}
-    \item \textbf{Szybki start i konfiguracja:} Expo eliminuje konieczność ręcznej konfiguracji środowiska Android Studio i Xcode na początku projektu.
-    \item \textbf{Expo Go:} Możliwość natychmiastowego testowania aplikacji na fizycznym urządzeniu poprzez zeskanowanie kodu QR, bez konieczności kompilacji pliku .apk/.ipa przy każdej zmianie.
-    \item \textbf{Dostęp do natywnego API:} Expo dostarcza gotowe, przetestowane moduły (SDK) do obsługi aparatu, systemu plików, powiadomień Push, lokalizacji czy sensorów, co przyspiesza development.
-    \item \textbf{EAS (Expo Application Services):} Ułatwia proces budowania i publikowania aplikacji w sklepach Google Play i App Store w chmurze, bez obciążania lokalnego komputera.
+\item \textbf{Wykrywanie błędów w czasie kompilacji:} Eliminuje typowe błędy typu \textit{runtime}, takie jak próba dostępu do pola w obiekcie o wartości \textit{null}.
+\item \textbf{Dokumentacja poprzez kod:} Interfejsy i typy jasno definiują strukturę danych przesyłanych między ekranami aplikacji.
+\item \textbf{Refaktoryzacja:} Dzięki silnemu typowaniu, wprowadzanie zmian w dużych strukturach danych (np. modelu użytkownika) jest bezpieczniejsze i szybsze.
 \end{itemize}
 
-\subsection{Zarządzanie stanem i komunikacja z API}
+\subsection{Platforma Expo i usługi EAS}
 
-W nowoczesnych aplikacjach frontendowych kluczowe jest efektywne zarządzanie stanem (danymi, które zmieniają się w czasie).
+Projekt oparto na środowisku \textbf{Expo} – ekosystemie narzędzi ułatwiających proces wytwarzania aplikacji w React Native. Expo dostarcza ujednolicone API do funkcji systemowych (aparat, galeria zdjęć, system plików). Wykorzystano również \textbf{EAS (Expo Application Services)}, co umożliwiło generowanie plików instalacyjnych (\textit{.apk} dla systemu Android) w chmurze, bez konieczności posiadania wydajnej stacji roboczej skonfigurowanej pod natywny proces kompilacji.
 
+\subsection{Stylizacja interfejsu — NativeWind}
+
+Do budowy warstwy wizualnej wykorzystano bibliotekę \textbf{NativeWind}, która implementuje system klas narzędziowych \textbf{Tailwind CSS} w środowisku mobilnym. Podejście to (\textit{utility-first}) pozwala na szybkie stylowanie komponentów bezpośrednio w kodzie JSX, co drastycznie skraca czas tworzenia responsywnych widoków i zapewnia spójność wizualną całego systemu bez konieczności pisania zewnętrznych arkuszy stylów.
+
+\subsection{Nawigacja — React Navigation}
+
+Zarządzanie przepływem ekranów zrealizowano przy pomocy biblioteki \textbf{React Navigation}. W systemie zaimplementowano dwa rodzaje nawigatorów:
 \begin{itemize}
-    \item \textbf{Zustand:}
-    Do zarządzania stanem globalnym wybrano bibliotekę Zustand. Jest ona znacznie lżejsza i prostsza w obsłudze niż popularny Redux. Redux wymaga dużej ilości kodu "boilerplate" (akcje, reducery, types, middleware), co w mniejszych i średnich projektach bywa uciążliwe. Zustand opiera się na prostych hookach i nie wymaga owijania całej aplikacji w \textit{Provider}. Pozwala to na łatwy dostęp do danych (np. profilu zalogowanego użytkownika) z dowolnego miejsca w aplikacji.
-    
-    \item \textbf{Axios:}
-    Do komunikacji z API RESTowym wykorzystano klienta Axios. Jest to biblioteka oparta na obietnicach (Promises), która automatycznie transformuje dane do formatu JSON, obsługuje nagłówki (np. dodawanie tokena autoryzacyjnego) oraz zapewnia lepszą obsługę błędów niż wbudowana w przeglądarki funkcja \texttt{fetch}.
+\item \textbf{Stack Navigator:} Wykorzystywany do liniowych procesów, takich jak logowanie, rejestracja czy przejście do szczegółów konkretnego rachunku.
+\item \textbf{Bottom Tab Navigator:} Stanowi główne menu aplikacji, umożliwiając szybkie przełączanie się między modułami: Dom, Zadania, Finanse i Profil.
 \end{itemize}
+
+\subsection{Zarządzanie stanem globalnym — Zustand}
+
+Do przechowywania danych dostępnych w całej aplikacji (np. informacja o zalogowanym użytkowniku, identyfikator wybranego domu) wybrano bibliotekę \textbf{Zustand}. Jest to rozwiązanie minimalistyczne, oparte na \textit{hookach}, które oferuje wysoką wydajność przy znacznie mniejszej złożoności niż tradycyjne biblioteki typu Redux. Pozwala to na uniknięcie problemu \textit{prop drilling} (przekazywania danych przez wiele poziomów komponentów).
+
+\subsection{Komunikacja sieciowa — Axios}
+
+Interakcja z backendem realizowana jest za pomocą klienta \textbf{Axios}. Biblioteka ta wspiera mechanizm \textit{interceptors}, który w projekcie został wykorzystany do automatycznego wstrzykiwania tokena JWT do nagłówków każdego żądania HTTP oraz do globalnej obsługi błędów sieciowych (np. automatyczne wylogowanie w przypadku wygaśnięcia sesji).
+
+\subsection{Bezpieczeństwo — Expo Secure Store}
+
+Ze względu na wrażliwy charakter danych dostępowych, w projekcie zrezygnowano z domyślnego \textit{AsyncStorage} na rzecz \textbf{Expo Secure Store}. Biblioteka ta zapewnia szyfrowane przechowywanie par klucz-wartość na poziomie systemowym (Keychain na iOS, SharedPreferences z szyfrowaniem na Androidzie), co gwarantuje, że tokeny autoryzacyjne użytkownika są chronione przed niepowołanym dostępem innych aplikacji.
 
 \section{Integracja backend-frontend (REST API)}
 
