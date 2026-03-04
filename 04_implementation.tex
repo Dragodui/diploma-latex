@@ -325,16 +325,46 @@ func (s *SmartHomeService) ControlDevice(ctx context.Context, entityID string, a
 Aby zapobiec nadużyciom i przeciążeniu lokalnej sieci IoT, endpointy sterujące urządzeniami zostały zabezpieczone dedykowanym mechanizmem \textit{Rate Limitingu}, zezwalającym na maksymalnie 30 akcji na minutę z jednego konta.
 \section{Struktura projektu frontend}
 
-Aplikacja kliencka w React Native wykorzystuje \textbf{Expo Router}, który opiera routing na strukturze plików (File-based routing), podobnie jak framework Next.js.
-Katalog \texttt{app} zawiera ekrany aplikacji:
+Aplikacja kliencka została zbudowana w oparciu o framework React Native z wykorzystaniem ekosystemu Expo. Struktura projektu została zaprojektowana w sposób modularny, co ułatwia zarządzanie stanem, nawigacją oraz reużywalnymi komponentami UI.
 
+\subsection{System routingu — Expo Router}
+W projekcie wykorzystano \textbf{Expo Router}, który wprowadza do React Native system routingu oparty na strukturze plików (File-based routing). Pozwala to na intuicyjne definiowanie ścieżek oraz automatyczne generowanie typów dla nawigacji.
+
+Główne katalogi wewnątrz folderu \texttt{app/}:
 \begin{itemize}
-    \item \texttt{app/index.tsx}: Ekran startowy (Splash screen).
-    \item \texttt{app/(auth)/login.tsx}: Ekran logowania (grupa auth, niedostępna po zalogowaniu).
-    \item \texttt{app/(tabs)/\_layout.tsx}: Konfiguracja dolnego paska nawigacji (Tab Bar).
-    \item \texttt{app/(tabs)/home.tsx}: Główny pulpit użytkownika.
-    \item \texttt{app/[id].tsx}: Dynamiczna ścieżka (np. szczegóły zadania).
+    \item \texttt{(tabs)/}: Zawiera główną nawigację dolną aplikacji (Pulpit, Zadania, Zakupy, Budżet, Profil). Wykorzystanie nawiasów w nazwie folderu pozwala na logiczne zgrupowanie ekranów bez wpływu na strukturę adresów URL.
+    \item \texttt{rooms/}, \texttt{smarthome/}: Podmoduły funkcjonalne aplikacji, obsługujące odpowiednio zarządzanie pomieszczeniami oraz integrację z urządzeniami Smart Home.
+    \item \texttt{[id].tsx}: Dynamiczne ścieżki wykorzystywane do wyświetlania szczegółów konkretnych obiektów (np. szczegóły konkretnego rachunku czy zadania).
+    \item \texttt{\_layout.tsx}: Pliki definiujące wspólny układ (np. nagłówki, kontenery bezpiecznej strefy \textit{SafeArea}) dla danej grupy ekranów.
 \end{itemize}
+
+\subsection{Komponenty interfejsu i wzorzec Atomic Design}
+Katalog \texttt{components/} zawiera reużywalne elementy interfejsu użytkownika, podzielone według ich przeznaczenia:
+\begin{itemize}
+    \item \texttt{ui/}: Podstawowe komponenty atomowe (Button, Input, Card, Modal, Alert), zbudowane przy użyciu \textbf{NativeWind}. Zapewniają one spójność wizualną całej aplikacji.
+    \item \texttt{skeletons/}: Dedykowane komponenty wyświetlane podczas ładowania danych (tzw. \textit{Skeleton Screens}). Każdy główny moduł (np. Home, Tasks, Shopping) posiada własny szkielet, co znacząco poprawia \textit{Perceived Performance} (postrzeganą wydajność) aplikacji.
+    \item \texttt{page-header.tsx}: Ujednolicony komponent nagłówka strony, wspierający przyciski powrotu, tytuły oraz akcje kontekstowe.
+\end{itemize}
+
+\subsection{Zarządzanie stanem — Stores}
+W folderze \texttt{stores/} znajdują się definicje magazynów \textbf{Zustand}, które zarządzają globalnym stanem aplikacji bez narzutu typowego dla biblioteki Redux:
+\begin{itemize}
+    \item \texttt{authStore.ts}: Zarządza sesją użytkownika, przechowuje tokeny JWT oraz dane profilowe.
+    \item \texttt{homeStore.ts}: Przechowuje informacje o aktualnie wybranym gospodarstwie domowym i listę dostępnych domów.
+    \item \texttt{i18nStore.ts}: Obsługuje preferencje językowe użytkownika.
+    \item \texttt{themeStore.ts}: Zarządza motywem kolorystycznym aplikacji (Dark/Light Mode).
+\end{itemize}
+
+\subsection{Warstwa logiki i narzędzi — Lib}
+Katalog \texttt{lib/} pełni rolę warstwy pośredniczącej między interfejsem a usługami zewnętrznymi:
+\begin{itemize}
+    \item \texttt{api.ts}: Scentralizowana konfiguracja klienta Axios z interceptorami do automatycznej autoryzacji.
+    \item \texttt{websocket.ts}: Implementacja klienta WebSocket do odbierania powiadomień w czasie rzeczywistym.
+    \item \texttt{secureStorage.ts}: Abstrakcja nad \texttt{Expo Secure Store} do bezpiecznego zapisu wrażliwych danych.
+    \item \texttt{i18n/}: System internacjonalizacji z plikami tłumaczeń dla 7 języków.
+    \item \texttt{useRealtimeRefresh.ts}: Autorski React Hook automatyzujący odświeżanie danych po otrzymaniu sygnału przez WebSocket.
+\end{itemize}
+
 
 \section{Interfejs użytkownika (UI) - Prezentacja aplikacji}
 
