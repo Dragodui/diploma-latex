@@ -110,51 +110,38 @@
 %----------------------------------------------------------------------------------------
 %	SPIS LITERATURY (JK - design and implementation)
 %----------------------------------------------------------------------------------------
-\pagestyle{empty} 
-\chapter*{Spis literatury}
-\addcontentsline{toc}{chapter}{\textcolor{blueZUT}{Spis literatury}}
-% Poniżej zdefiniowane są filtry do dzielenia spisu literatury na kategorie
-\defbibfilter{articles}{
-  type=article or 
-  type=inproceedings
-}
-\defbibfilter{other}{
-  type=url or
-  type=online  or
-  type=manual or
-  type=misc
-}
+\pagestyle{plain}
+\begin{thebibliography}{99}
+\addcontentsline{toc}{chapter}{Spis literatury}
 
-% UWAGA! -aby zmienić zawartość spisu literatury należy wyedytować plik
-% bibliography.bib
+\bibitem{donovan2015} Donovan A. A. A., Kernighan B. W., \textit{The Go Programming Language}, Addison-Wesley, New York 2015.
+\bibitem{cox2016} Cox M., Campoy F., \textit{Go in Practice}, Manning Publications, Shelter Island 2016.
+\bibitem{freeman2020} Freeman E., Robson E., \textit{Head First Design Patterns}, O'Reilly Media, Sebastopol 2020.
+\bibitem{evans2004} Evans E., \textit{Domain-Driven Design: Tackling Complexity in the Heart of Software}, Addison-Wesley, Boston 2004.
+\bibitem{fowler2002} Fowler M., \textit{Patterns of Enterprise Application Architecture}, Addison-Wesley, Boston 2002.
+\bibitem{martin2018} Martin R. C., \textit{Clean Architecture: A Craftsman's Guide to Software Structure and Design}, Prentice Hall, Boston 2018.
+\bibitem{pilone2005} Pilone D., \textit{UML 2.0 in a Nutshell}, O'Reilly Media, Sebastopol 2005.
+\bibitem{date2003} Date C. J., \textit{An Introduction to Database Systems}, Addison-Wesley, Boston 2003.
+\bibitem{burrows2020} Burrows M., \textit{The Go Memory Model}, Google Research, 2020.
+\bibitem{gorm2023} GORM Team, \textit{Design and Best Practices for ORM in Go}, Medium, 2023.
+\bibitem{rn2024} React Native Team, \textit{State Management in React Native Apps}, Expo Blog, 2024.
+\bibitem{postgres2023} PostgreSQL Global Development Group, \textit{Indexing and Query Optimization in PostgreSQL}, PostgreSQL Tech Notes, 2023.
+\bibitem{godocs} Go Team, \textit{Go Documentation}, \url{https://golang.org/doc/}, 2025.
+\bibitem{gormdocs} GORM, \textit{GORM Official Documentation}, \url{https://gorm.io/docs/}, 2025.
+\bibitem{chidocs} Go-Chi, \textit{Chi Router Documentation}, \url{https://github.com/go-chi/chi}, 2025.
+\bibitem{rndocs} Meta, \textit{React Native Documentation}, \url{https://reactnative.dev/docs/}, 2025.
+\bibitem{expodocs} Expo, \textit{Expo Documentation}, \url{https://docs.expo.dev/}, 2025.
+\bibitem{zustanddocs} Poimandres, \textit{Zustand Documentation}, \url{https://docs.pmnd.rs/zustand}, 2025.
+\bibitem{axiosdocs} Axios, \textit{Axios Documentation}, \url{https://axios-http.com/docs/intro}, 2025.
+\bibitem{pgdocs} PostgreSQL, \textit{PostgreSQL Official Documentation}, \url{https://www.postgresql.org/docs/}, 2025.
+\bibitem{dockerdocs} Docker Inc., \textit{Docker Documentation}, \url{https://docs.docker.com/}, 2025.
+\bibitem{gitdocs} Git, \textit{Git Documentation}, \url{https://git-scm.com/doc}, 2025.
+\bibitem{owasp2024} OWASP Foundation, \textit{OWASP Top 10: Security Risks for Web Applications}, \url{https://owasp.org/www-project-top-ten/}, 2024.
+\bibitem{tesseract} Tesseract OCR, \textit{Tesseract OCR Documentation}, \url{https://tesseract-ocr.github.io/}, 2024.
+\bibitem{googledev} Google Developers, \textit{Push Notifications for Mobile Apps}, \url{https://firebase.google.com/docs/cloud-messaging}, 2024.
 
-%------------------------------------------------
-% Spis literartury podzielony jest na 3 kategorie
-% 1
-\section*{Książki}
-\addcontentsline{toc}{section}{Książki}
-\printbibliography[heading=bibempty,type=book]
+\end{thebibliography}
 
-%------------------------------------------------
-% 2
-\section*{Artykuły}
-\addcontentsline{toc}{section}{Artykuły}
-\printbibliography[heading=bibempty,filter=articles]
-%------------------------------------------------
-% 3
-\section*{Źródła internetowe i inne}
-\addcontentsline{toc}{section}{Źródła internetowe i inne}
-\printbibliography[heading=bibempty,filter=other]
-
-
-%----------------------------------------------------------------------------------------
-%	APPENDIX (JK - design and implementation)
-%----------------------------------------------------------------------------------------
-\pagestyle{fancy} 
-\begin{appendix}
-\appendix
-\include{appendix_installation} % conclusions.tex zawiera treść zakończenia/podsumowania pracy dyplomowej
-\end{appendix}
 %----------------------------------------------------------------------------------------
 % Koniec dokumentu
 \end{document}

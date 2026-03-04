@@ -138,7 +138,7 @@ Rozwiązanie to pozwala na inspekcję ładunku JSON w warstwie bezpieczeństwa, 
 Standardowy interfejs \texttt{http.ResponseWriter} w Go nie przechowuje informacji o kodzie statusu po jego wysłaniu do klienta. Aby umożliwić zbieranie metryk dla systemu Prometheus oraz generowanie logów, zastosowano wzorzec projektowy Dekoratora (ang. \textit{Decorator Pattern}).
 
 Zdefiniowano własną strukturę \texttt{responseWriter}, która opakowuje (ang. \textit{wraps}) oryginalny interfejs, nadpisując metody \texttt{WriteHeader} oraz \texttt{Write}. Dzięki temu middleware jest w stanie przechwycić kod błędu (np. 404 lub 500) oraz zliczyć ilość wysłanych bajtów, co pozwala na generowanie precyzyjnych statystyk działania systemu (np. czas odpowiedzi \texttt{HttpRequestDuration} mierzony w sekundach) bez ingerencji w kod samych kontrolerów.
-\subsection{Dokumentacja API (Swagger)}
+\section{Dokumentacja API (Swagger)}
 
 Wszystkie endpointy zostały udokumentowane przy użyciu standardu OpenAPI (Swagger). Poniższy zrzut ekranu przedstawia interaktywną dokumentację wygenerowaną automatycznie.
 
