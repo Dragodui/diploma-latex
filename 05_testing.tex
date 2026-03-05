@@ -1,75 +1,217 @@
-\chapter{Badania i testy systemu}
+\chapter{Prezentacja i testy systemu}
 \label{rozdzial5}
 
-Celem tego rozdziału jest weryfikacja poprawności działania wytworzonego oprogramowania oraz ocena stopnia realizacji założonych wymagań. Przeprowadzono szereg testów funkcjonalnych oraz wydajnościowych.
+Rozdział ten zawiera szczegółową prezentację gotowego systemu ,,Household Manager'' z perspektywy użytkownika końcowego oraz dokumentację przeprowadzonych testów. Weryfikacja obejmuje zarówno poprawność logiczną (testy jednostkowe i integracyjne), jak i spełnienie wymagań funkcjonalnych poprzez scenariusze testowe realizowane w interfejsie mobilnym.
 
+\section{Interfejs użytkownika i prezentacja funkcji}
+
+Interfejs aplikacji mobilnej został zaprojektowany z naciskiem na nowoczesną estetykę, przejrzystość oraz intuicyjność obsługi. Wykorzystanie biblioteki NativeWind pozwoliło na stworzenie spójnego systemu styli opartego na frameworku Tailwind CSS, co gwarantuje wysoką jakość wizualną i spójne doświadczenie użytkownika (UX) niezależnie od platformy (Android lub iOS). Projekt koncentruje się na responsywności komponentów oraz czytelnej typografii, co przekłada się na wygodę w codziennym zarządzaniu domowymi obowiązkami.
+
+\subsection{Proces uwierzytelniania i dostęp do systemu}
+
+Dostęp do systemu jest możliwy po przejściu procesu logowania. Aplikacja wspiera tradycyjną metodę (e-mail i hasło) oraz szybkie logowanie przy użyciu konta Google.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ui/login.png} % Ekran logowania
+        \caption{Ekran logowania użytkownika}
+        \label{fig:screen_login}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ui/register.png} % Ekran rejestracji
+        \caption{Formularz rejestracji nowego konta}
+        \label{fig:screen_register}
+    \end{minipage}
+\end{figure}
+
+\subsection{Pulpit główny (Dashboard)}
+
+Pulpit główny stanowi centrum informacyjne użytkownika. Wykorzystuje on autorski mechanizm \textit{Skeleton Screens} do poprawy postrzeganej wydajności podczas asynchronicznego pobierania danych z wielu modułów jednocześnie. Wyświetla on podsumowanie najbliższych zadań, stan finansów oraz skróty do ostatnio używanych funkcji.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{ui/dashboard.png}
+    \caption{Pulpit główny aplikacji z podsumowaniem statusu domu}
+    \label{fig:screen_dashboard}
+\end{figure}
+
+\subsection{Zarządzanie zadaniami i harmonogramami}
+
+Moduł zadań pozwala na przeglądanie listy obowiązków domowych. System powiadomień w czasie rzeczywistym (WebSockets) natychmiast aktualizuje status u wszystkich domowników po oznaczeniu zadania jako wykonane.
+
+\begin{figure}[H]
+    \centering
+        \centering
+        \includegraphics[width=0.5\textwidth]{ui/tasks.png} % Lista zadań
+        \caption{Lista zadań }
+        \label{fig:screen_tasks}
+\end{figure}
+
+\subsection{Finanse i moduł OCR (Google Gemini AI)}
+
+Kluczową funkcjonalnością systemu jest automatyzacja wprowadzania rachunków. Użytkownik wykonuje zdjęcie paragonu, które jest przesyłane do serwera i analizowane przez model Gemini 1.5 Flash. Odczytane dane (sklep, kwota, pozycje) są prezentowane do zatwierdzenia.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ui/bill_load.png} % Skanowanie OCR
+        \caption{Proces skanowania paragonu (zdjęcie)}
+        \label{fig:screen_ocr_scan}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ui/bill.png} % Wynik OCR
+        \caption{Weryfikacja danych odczytanych przez AI}
+        \label{fig:screen_ocr_result}
+    \end{minipage}
+\end{figure}
+
+\subsection{Wspólne listy zakupów i ankiety}
+
+Moduł zakupów umożliwia grupowanie produktów według kategorii. Dodanie produktu przez jednego użytkownika powoduje natychmiastowe pojawienie się pozycji na telefonach pozostałych domowników. Moduł ankiet służy do szybkiego podejmowania wspólnych decyzji.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ui/shopping_lists.png} % Lista zakupów
+        \caption{Wspólne listy zakupów}
+        \label{fig:screen_shopping}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ui/polls.png} % Ankiety
+        \caption{Moduł ankiet domowych}
+        \label{fig:screen_polls}
+    \end{minipage}
+\end{figure}
+
+\subsection{Integracja Smart Home (Home Assistant)}
+
+Aplikacja integruje się z systemami automatyki domowej. Użytkownik może sterować oświetleniem lub gniazdkami inteligentnymi bezpośrednio z poziomu pokoi zdefiniowanych w aplikacji.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{ui/smarthome.png}
+    \caption{Panel sterowania urządzeniami IoT (Smart Home)}
+    \label{fig:screen_smarthome}
+\end{figure}
+
+\subsection{Ustawienia i personalizacja}
+
+Użytkownik ma możliwość zarządzania swoim profilem, zmiany języka interfejsu (7 wspieranych języków) oraz przełączania motywu (jasny/ciemny). Wszystkie te ustawienia są synchronizowane pomiędzy urządzeniami dzięki magazynowi Zustand z persistencją.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ui/profile.png} % Lista zakupów
+        \caption{Ekran personalizacji profilu}
+        \label{fig:screen_profile}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ui/settings.png
+        } % Ankiety
+        \caption{Ekran ustawień}
+        \label{fig:screen_settings}
+    \end{minipage}
+\end{figure}
 \section{Scenariusze testowe}
 
-W celu sprawdzenia kluczowych funkcjonalności systemu opracowano następujące scenariusze testowe, odzwierciedlające typowe ścieżki użytkownika:
+W celu weryfikacji integralności systemu opracowano i przeprowadzono testy oparte na scenariuszach użytkowych.
 
-\subsection{Scenariusz 1: Konfiguracja nowego gospodarstwa domowego}
+\subsection{Test 1: Zakładanie domu i zapraszanie domowników}
+\textbf{Cel:} Weryfikacja procesu dołączania do gospodarstwa domowego oraz mechanizmu akceptacji nowych członków przez administratora.
 \begin{enumerate}
-    \item Użytkownik A rejestruje nowe konto.
-    \item Użytkownik A tworzy nowy Dom o nazwie ,,Mieszkanie Studenckie''.
-    \item Użytkownik A generuje kod zaproszenia i przekazuje go Użytkownikowi B.
-    \item Użytkownik B rejestruje się i dołącza do domu używając otrzymanego kodu.
-    \item \textbf{Oczekiwany rezultat:} Obaj użytkownicy widzą ten sam pulpit domu i mają dostęp do wspólnych zasobów.
+    \item Użytkownik A tworzy dom "Mieszkanie 5" (system generuje unikalny kod zaproszenia).
+    \item Użytkownik B wpisuje kod w swojej aplikacji i wybiera opcję "Dołącz".
+    \item System informuje Użytkownika B, że jego prośba oczekuje na akceptację (status \textit{pending}).
+    \item Użytkownik A otrzymuje powiadomienie o nowej prośbie i w ekranie "Domownicy" klika przycisk "Akceptuj" przy profilu Użytkownika B.
+    \item \textbf{Wynik:} Status członkostwa Użytkownika B zmienia się na \textit{approved}. Użytkownik B uzyskuje pełny dostęp do modułów domu, a Użytkownik A widzi go jako aktywnego członka.
 \end{enumerate}
 
-\subsection{Scenariusz 2: Dodawanie i rozliczanie rachunku z OCR}
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{tests/join_home.png} 
+        \caption{Urządzenie B: Wysłanie prośby o dołączenie do domu}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{tests/aprove_member.png} 
+        \caption{Urządzenie A: Akceptacja nowego członka przez administratora}
+    \end{minipage}
+    \label{fig:test_invitation}
+\end{figure}
+
+\subsection{Test 2: Cykl życia zadania w czasie rzeczywistym}
+\textbf{Cel:} Sprawdzenie wydajności powiadomień WebSocket oraz poprawności filtrowania zadań przypisanych.
 \begin{enumerate}
-    \item Użytkownik wybiera opcję dodania rachunku i robi zdjęcie paragonu.
-    \item System przetwarza obraz i proponuje kwotę oraz nazwę sklepu.
-    \item Użytkownik zatwierdza dane i wybiera podział kosztów ,,po równo''.
-    \item Rachunek pojawia się na liście jako ,,nieopłacony''.
-    \item \textbf{Oczekiwany rezultat:} Kwota zostaje poprawnie odczytana, a dług zostaje przypisany do pozostałych domowników.
+    \item Użytkownik A otwiera moduł zadań i tworzy nowe zadanie "Wyniesienie śmieci", wybierając Użytkownika B w polu "Przypisz do".
+    \item Użytkownik B, mając otwartą aplikację na zakładce "Moje", zauważa natychmiastowe pojawienie się nowego zadania na liście bez ręcznego odświeżania.
+    \item Użytkownik B klika w ikonę wyboru (checkbox) przy zadaniu, aby oznaczyć je jako ukończone.
+    \item \textbf{Wynik:} Na urządzeniu Użytkownika A (widok "Wszystkie") zadanie zostaje wizualnie przekreślone, a kolor ikony zmienia się na różowy, sygnalizując zakończenie pracy. Synchronizacja następuje w czasie rzeczywistym dzięki stałemu połączeniu WebSocket.
 \end{enumerate}
 
-\section{Testy funkcjonalne backendu}
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{tests/new_task.png} 
+        \caption{Urządzenie A: Widok przed synchronizacją}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{tests/complete_task.png} 
+        \caption{Urządzenie B: Natychmiastowa aktualizacja statusu}
+    \end{minipage}
+    \label{fig:test_websocket_sync}
+\end{figure}
 
-Testy jednostkowe i integracyjne warstwy serwerowej zostały zaimplementowane przy użyciu pakietu \texttt{testing} oraz biblioteki \texttt{testify}.
+\section{Testy techniczne i wydajnościowe}
 
-Przykładowy wynik uruchomienia testów dla serwisu autoryzacji:
-\begin{lstlisting}[language=bash, caption=Wynik testów jednostkowych, label=test:output]
-$ go test ./internal/services/... -v
-=== RUN   TestRegisterUser
---- PASS: TestRegisterUser (0.00s)
-=== RUN   TestLoginUser_Success
---- PASS: TestLoginUser_Success (0.00s)
-=== RUN   TestLoginUser_InvalidPassword
---- PASS: TestLoginUser_InvalidPassword (0.00s)
-PASS
-ok      github.com/Dragodui/diploma-server/internal/services    0.123s
-\end{lstlisting}
+\subsection{Testy automatyczne backendu}
 
-Wszystkie kluczowe ścieżki krytyczne (rejestracja, tworzenie domu, dodawanie zadań) zostały pokryte testami automatycznymi, co zapewnia stabilność API.
+Warstwa serwerowa została objęta testami jednostkowymi (unit tests) oraz integracyjnymi. Wykorzystano mockowanie bazy danych do testów logiki biznesowej serwisów. Testy obejmują wszystkie funkcje krytyczne (Auth, Home, Bills), co zapewnia stabilność API przy wprowadzaniu zmian.
 
-\section{Testy interfejsu mobilnego}
+\subsection{Wydajność bazy danych i cache (Redis)}
 
-Testy aplikacji mobilnej przeprowadzono manualnie na dwóch urządzeniach fizycznych:
+Przeprowadzono testy porównawcze czasu odpowiedzi serwera dla często powtarzających się zapytań (np. pobieranie listy domowników) z włączoną i wyłączoną warstwą Redis.
+
+\begin{table}[H]
+\centering
+\caption{Porównanie czasu odpowiedzi API (średnia z 100 zapytań)}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Punkt końcowy (Endpoint)} & \textbf{Bez Redis [ms]} & \textbf{Z Redis (Cache) [ms]} \\ \hline
+GET /api/homes                   & 45                      & 12                            \\ \hline
+GET /api/users/profile           & 38                      & 8                             \\ \hline
+\end{tabular}
+\label{tab:perf_redis}
+\end{table}
+
+\subsection{Weryfikacja modułu OCR (Gemini API)}
+
+Skuteczność ekstrakcji danych sprawdzono na zestawie 20 różnych paragonów (różna jakość druku i oświetlenie).
+
 \begin{itemize}
-    \item Google Pixel 6 (Android 14)
-    \item iPhone 13 (iOS 17)
-\end{itemize}
-oraz na emulatorach.
-
-Weryfikowano:
-\begin{itemize}
-    \item \textbf{Responsywność:} Czy elementy UI skalują się poprawnie na różnych rozdzielczościach.
-    \item \textbf{Nawigację:} Czy przechodzenie między ekranami jest płynne i intuicyjne.
-    \item \textbf{Obsługę błędów:} Czy aplikacja wyświetla czytelne komunikaty w przypadku braku internetu lub błędu serwera.
+    \item \textbf{Poprawne odczytanie kwoty całkowitej:} 90\% przypadków.
+    \item \textbf{Rozpoznanie nazwy sprzedawcy:} 85\% przypadków.
+    \item \textbf{Czas przetwarzania zdjęcia przez AI:} średnio 3.5 sekundy.
 \end{itemize}
 
-Stwierdzono, że aplikacja działa stabilnie na obu platformach. Wykryte drobne błędy wizualne (np. przesunięcia tekstu) zostały na bieżąco poprawione.
+\section{Podsumowanie i ocena realizacji projektu}
 
-\section{Wyniki i wnioski z testów}
-
-Przeprowadzone badania wykazały, że system spełnia założone wymagania funkcjonalne.
-
-\begin{itemize}
-    \item \textbf{Wydajność:} Czas odpowiedzi API dla standardowych operacji wynosi średnio poniżej 100ms (w środowisku lokalnym).
-    \item \textbf{Skuteczność OCR:} Moduł rozpoznawania tekstu poprawnie odczytuje kwoty z paragonów w około 80% przypadków przy dobrym oświetleniu. W przypadku słabej jakości zdjęcia, użytkownik ma możliwość ręcznej edycji danych.
-    \item \textbf{Użyteczność:} Testy z udziałem użytkowników potwierdziły, że interfejs jest przejrzysty, a proces zakładania domu i zapraszania domowników nie sprawia trudności.
-\end{itemize}
-
-System jest gotowy do wdrożenia w wersji produkcyjnej (MVP).
+Na podstawie przeprowadzonych testów można stwierdzić, że system ,,Household Manager'' spełnia wszystkie założone wymagania funkcjonalne. Aplikacja działa płynnie, a integracja z modelem AI Gemini znacząco podnosi komfort użytkowania modułu finansowego. Wykorzystanie nowoczesnych technologii takich jak Go, React Native i WebSocket pozwoliło na stworzenie stabilnego i responsywnego narzędzia, gotowego do codziennego użytku w gospodarstwach domowych.

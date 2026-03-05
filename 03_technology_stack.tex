@@ -130,6 +130,13 @@ Zaimplementowane potoki (pipelines) odpowiadają za:
 Kluczowym aspektem utrzymania systemów rozproszonych jest ich obserwacja (ang. \textit{observability}). Do zbierania metryk wykorzystano system \textbf{Prometheus}, który cyklicznie pobiera dane z serwera Go (poprzez wystawiony, zabezpieczony punkt końcowy \texttt{/metrics}). 
 Zgromadzone dane, takie jak czas odpowiedzi serwera, liczba zapytań HTTP czy obciążenie pamięci, są następnie wizualizowane za pomocą platformy \textbf{Grafana}. Pozwala to na tworzenie interaktywnych pulpitów nawigacyjnych (dashboards), które w czasie rzeczywistym obrazują kondycję systemu i ułatwiają szybką diagnozę potencjalnych wąskich gardeł wydajnościowych.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{grafana.png} % Placeholder for Grafana
+    \caption{Panel monitorowania parametrów serwera w systemie Grafana}
+    \label{fig:grafana_dashboard}
+\end{figure}
+
 
 
 \section{Narzędzia wspierające i usługi chmurowe}

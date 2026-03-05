@@ -330,11 +330,36 @@ Aplikacja kliencka została zbudowana w oparciu o framework React Native z wykor
 \subsection{System routingu — Expo Router}
 W projekcie wykorzystano \textbf{Expo Router}, który wprowadza do React Native system routingu oparty na strukturze plików (File-based routing). Pozwala to na intuicyjne definiowanie ścieżek oraz automatyczne generowanie typów dla nawigacji.
 
+Poniższy fragment przedstawia konfigurację głównego układu zakładek (Tabs), gdzie definiowany jest wygląd i zachowanie dolnego paska nawigacji.
+
+\begin{lstlisting}[language=javascript, caption=Definicja układu nawigacji w Expo Router, label=code:frontend_routing]
+export default function TabLayout() {
+  const { theme } = useTheme();
+  return (
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: theme.isDark ? "#FFFFFF" : "#1C1C1E",
+        tabBarStyle: {
+          backgroundColor: theme.surface,
+          height: 90,
+          paddingBottom: 28,
+        },
+        tabBarShowLabel: false,
+        headerShown: false,
+      }}>
+      <Tabs.Screen name="home" />
+      <Tabs.Screen name="tasks" />
+      <Tabs.Screen name="shopping" />
+    </Tabs>
+  );
+}
+\end{lstlisting}
+
 Główne katalogi wewnątrz folderu \texttt{app/}:
 \begin{itemize}
-    \item \texttt{(tabs)/}: Zawiera główną nawigację dolną aplikacji (Pulpit, Zadania, Zakupy, Budżet, Profil). Wykorzystanie nawiasów w nazwie folderu pozwala na logiczne zgrupowanie ekranów bez wpływu na strukturę adresów URL.
-    \item \texttt{rooms/}, \texttt{smarthome/}: Podmoduły funkcjonalne aplikacji, obsługujące odpowiednio zarządzanie pomieszczeniami oraz integrację z urządzeniami Smart Home.
-    \item \texttt{[id].tsx}: Dynamiczne ścieżki wykorzystywane do wyświetlania szczegółów konkretnych obiektów (np. szczegóły konkretnego rachunku czy zadania).
+    \item \texttt{(tabs)/}: Zawiera główną nawigację dolną aplikacji (Pulpit, Zadania, Zakupy, Budżet, Profil).
+    \item \texttt{rooms/}, \texttt{smarthome/}: Podmoduły funkcjonalne aplikacji.
+    \item \texttt{[id].tsx}: Dynamiczne ścieżki wykorzystywane do wyświetlania szczegółów konkretnych obiektów.
     \item \texttt{\_layout.tsx}: Pliki definiujące wspólny układ (np. nagłówki, kontenery bezpiecznej strefy \textit{SafeArea}) dla danej grupy ekranów.
 \end{itemize}
 
@@ -342,99 +367,79 @@ Główne katalogi wewnątrz folderu \texttt{app/}:
 Katalog \texttt{components/} zawiera reużywalne elementy interfejsu użytkownika, podzielone według ich przeznaczenia:
 \begin{itemize}
     \item \texttt{ui/}: Podstawowe komponenty atomowe (Button, Input, Card, Modal, Alert), zbudowane przy użyciu \textbf{NativeWind}. Zapewniają one spójność wizualną całej aplikacji.
-    \item \texttt{skeletons/}: Dedykowane komponenty wyświetlane podczas ładowania danych (tzw. \textit{Skeleton Screens}). Każdy główny moduł (np. Home, Tasks, Shopping) posiada własny szkielet, co znacząco poprawia \textit{Perceived Performance} (postrzeganą wydajność) aplikacji.
-    \item \texttt{page-header.tsx}: Ujednolicony komponent nagłówka strony, wspierający przyciski powrotu, tytuły oraz akcje kontekstowe.
+    \item \texttt{skeletons/}: Dedykowane komponenty wyświetlane podczas ładowania danych (tzw. \textit{Skeleton Screens}). Każdy główny moduł posiada własny szkielet, co poprawia postrzeganą wydajność aplikacji.
+    \item \texttt{page-header.tsx}: Ujednolicony komponent nagłówka strony.
 \end{itemize}
 
 \subsection{Zarządzanie stanem — Stores}
-W folderze \texttt{stores/} znajdują się definicje magazynów \textbf{Zustand}, które zarządzają globalnym stanem aplikacji bez narzutu typowego dla biblioteki Redux:
-\begin{itemize}
-    \item \texttt{authStore.ts}: Zarządza sesją użytkownika, przechowuje tokeny JWT oraz dane profilowe.
-    \item \texttt{homeStore.ts}: Przechowuje informacje o aktualnie wybranym gospodarstwie domowym i listę dostępnych domów.
-    \item \texttt{i18nStore.ts}: Obsługuje preferencje językowe użytkownika.
-    \item \texttt{themeStore.ts}: Zarządza motywem kolorystycznym aplikacji (Dark/Light Mode).
-\end{itemize}
+W folderze \texttt{stores/} znajdują się definicje magazynów \textbf{Zustand}, które zarządzają globalnym stanem aplikacji. Przykładowo, \texttt{homeStore} odpowiada za synchronizację informacji o aktualnie wybranym gospodarstwie domowym między wszystkimi ekranami.
+
+\begin{lstlisting}[language=javascript, caption=Fragment magazynu stanu homeStore w Zustand, label=code:zustand_store]
+interface HomeState {
+  homes: Home[];
+  currentHomeId: number | null;
+  isLoading: boolean;
+  
+  setSelectedHome: (id: number) => Promise<void>;
+  fetchHomes: () => Promise<void>;
+}
+
+export const useHomeStore = create<HomeState>()(
+  persist((set, get) => ({
+    homes: [],
+    currentHomeId: null,
+    setSelectedHome: async (id) => {
+      await AsyncStorage.setItem("current_home_id", id.toString());
+      set({ currentHomeId: id });
+    }
+  }), { name: "home-storage" })
+);
+\end{lstlisting}
 
 \subsection{Warstwa logiki i narzędzi — Lib}
-Katalog \texttt{lib/} pełni rolę warstwy pośredniczącej między interfejsem a usługami zewnętrznymi:
+Katalog \texttt{lib/} pełni rolę warstwy pośredniczącej między interfejsem a usługami zewnętrznymi. Najważniejszym elementem tej warstwy jest autorski hook \texttt{useRealtimeRefresh}, który integruje UI z systemem powiadomień WebSocket.
+
+\begin{lstlisting}[language=javascript, caption=Hook useRealtimeRefresh integrujący WebSockety z Reactem, label=code:realtime_hook]
+export function useRealtimeRefresh(modules: EventModule[], callback: () => void) {
+  useEffect(() => {
+    // Subskrypcja na konkretne moduly zdarzen
+    return wsManager.subscribe(modules, callback);
+  }, [callback, modules]);
+}
+\end{lstlisting}
+
+Katalog \texttt{lib/} zawiera również:
 \begin{itemize}
     \item \texttt{api.ts}: Scentralizowana konfiguracja klienta Axios z interceptorami do automatycznej autoryzacji.
     \item \texttt{websocket.ts}: Implementacja klienta WebSocket do odbierania powiadomień w czasie rzeczywistym.
-    \item \texttt{secureStorage.ts}: Abstrakcja nad \texttt{Expo Secure Store} do bezpiecznego zapisu wrażliwych danych.
+    \item \texttt{secureStorage.ts}: Abstrakcja nad \texttt{Expo Secure Store} do bezpiecznego zapisu danych.
     \item \texttt{i18n/}: System internacjonalizacji z plikami tłumaczeń dla 7 języków.
-    \item \texttt{useRealtimeRefresh.ts}: Autorski React Hook automatyzujący odświeżanie danych po otrzymaniu sygnału przez WebSocket.
 \end{itemize}
 
+\section{Konteneryzacja i orkiestracja środowiska}
 
-\section{Interfejs użytkownika (UI) - Prezentacja aplikacji}
+W celu zapewnienia powtarzalności środowiska uruchomieniowego oraz ułatwienia procesu wdrażania (ang. \textit{deployment}), cały system backendowy został w pełni skonteneryzowany przy użyciu platformy \textbf{Docker}.
 
-Interfejs użytkownika został zaprojektowany z naciskiem na przejrzystość i łatwość obsługi (User Experience). Poniżej przedstawiono kluczowe ekrany aplikacji.
+\subsection{Budowa obrazu serwera (Dockerfile)}
 
-\subsection{Ekran logowania i rejestracji}
-Umożliwia dostęp do aplikacji. Użytkownik może zalogować się tradycyjnie lub przez Google.
+Dla części serwerowej przygotowano zoptymalizowany plik \texttt{Dockerfile}, który wykorzystuje mechanizm wieloetapowego budowania (ang. \textit{multi-stage builds}). Pozwala to na oddzielenie środowiska kompilacji od finalnego obrazu produkcyjnego, co znacząco redukuje rozmiar obrazu oraz zwiększa bezpieczeństwo (obraz wynikowy nie zawiera kodu źródłowego ani narzędzi kompilacji).
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.45\textwidth]{placeholder.jpg} % Placeholder: Login Screen
-    \caption{Ekran logowania}
-    \label{fig:login_screen}
-\end{figure}
+\begin{enumerate}
+    \item \textbf{Etap budowania (Builder):} Wykorzystuje obraz \texttt{golang:1.23-alpine}. Tutaj pobierane są zależności (\textit{go mod download}) oraz następuje kompilacja binarna aplikacji.
+    \item \textbf{Etap końcowy (Final):} Wykorzystuje lekki obraz \texttt{alpine:latest}. Kopiowany jest jedynie skompilowany plik wykonywalny oraz niezbędne pliki konfiguracyjne.
+\end{enumerate}
 
-\subsection{Pulpit główny (Dashboard)}
-Centrum dowodzenia domem. Wyświetla podsumowanie: najbliższe zadania, stan konta oraz skróty do najważniejszych funkcji.
+\subsection{Orkiestracja usług z Docker Compose}
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.45\textwidth]{placeholder.jpg} % Placeholder: Dashboard
-    \caption{Pulpit główny aplikacji}
-    \label{fig:dashboard_screen}
-\end{figure}
+Ze względu na złożoność systemu, który wymaga jednoczesnego działania serwera API, bazy danych Redis oraz narzędzi monitorujących, zastosowano narzędzie \textbf{Docker Compose}. Pozwala ono na zdefiniowanie całej infrastruktury w jednym pliku deklaratywnym \texttt{docker-compose.dev.yaml}.
 
-\subsection{Zarządzanie zadaniami}
-Lista zadań z możliwością filtrowania i oznaczania jako wykonane.
+Kluczowe usługi zdefiniowane w konfiguracji orkiestratora:
+\begin{itemize}
+    \item \textbf{backend:} Główny kontener aplikacji Go, montujący kod źródłowy jako wolumen w celu wsparcia mechanizmu \textit{Hot-Reload} podczas deweloperki.
+    \item \textbf{redis:} Szybki magazyn klucz-wartość wykorzystywany do buforowania (Cache) i obsługi sesji.
+    \item \textbf{prometheus:} Serwer zbierający metryki wydajnościowe z aplikacji.
+    \item \textbf{grafana:} Narzędzie do wizualizacji zebranych danych na interaktywnych pulpitach.
+\end{itemize}
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.45\textwidth]{placeholder.jpg} % Placeholder: Tasks
-    \caption{Lista zadań domowych}
-    \label{fig:tasks_screen}
-\end{figure}
-
-\subsection{Skanowanie rachunków (OCR)}
-Moduł pozwalający na zrobienie zdjęcia i weryfikację odczytanych danych.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.45\textwidth]{placeholder.jpg} % Placeholder: OCR/Bill
-    \caption{Ekran dodawania rachunku ze skanowaniem OCR}
-    \label{fig:ocr_screen}
-\end{figure}
-
-\section{Wybrane fragmenty kodu frontendowego}
-
-Poniżej przedstawiono niestandardowy React Hook odpowiedzialny za pobieranie danych z API z obsługą stanu ładowania i błędów.
-
-\begin{lstlisting}[language=javascript, caption=Custom Hook useFetch, label=code:usefetch]
-export function useFetch<T>(url: string) {
-  const [data, setData] = useState<T | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await api.get(url);
-        setData(response.data);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [url]);
-
-  return { data, loading, error, refetch: fetchData };
-}
-\end{lstlisting}
+Wszystkie kontenery pracują wewnątrz izolowanej sieci wirtualnej (\texttt{app-network}), co uniemożliwia bezpośredni dostęp do bazy danych Redis z zewnątrz, zapewniając dodatkową warstwę bezpieczeństwa. Komunikacja między usługami odbywa się przy użyciu nazw serwisów zamiast adresów IP, co jest realizowane przez wewnętrzny serwer DNS platformy Docker.
 

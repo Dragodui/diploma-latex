@@ -69,3 +69,25 @@ Istnieją aplikacje próbujące łączyć te funkcje, jednak często borykają s
 \section{Podsumowanie analizy}
 
 Analiza rynku wskazuje na brak darmowego, nowoczesnego i kompleksowego rozwiązania, które łączyłoby zarządzanie finansami (z wykorzystaniem OCR), zadaniami i zakupami w jednej aplikacji o wysokiej jakości interfejsu (UX/UI). Projektowany system ,,Household Manager'' ma na celu wypełnienie tej luki, oferując użytkownikom narzędzie typu ,,wszystko w jednym'', dostosowane do współczesnych standardów aplikacji mobilnych.
+
+\section{Metodyka pracy i zarządzanie projektem}
+
+W celu zapewnienia wysokiej efektywności prac oraz terminowej realizacji wszystkich założeń projektowych, proces wytwarzania oprogramowania był prowadzony zgodnie z metodyką zwinnego zarządzania projektami (ang. \textit{Agile}).
+
+\subsection{Zastosowanie podejścia Kanban}
+
+Do zarządzania zadaniami wybrano podejście \textbf{Kanban}, które charakteryzuje się wizualizacją przepływu pracy oraz skupieniem na ciągłym dostarczaniu kolejnych funkcjonalności. Wybór ten był podyktowany elastycznością metody, która pozwala na dynamiczne reagowanie na napotkane problemy techniczne oraz płynne przechodzenie między etapami implementacji warstwy serwerowej i klienckiej.
+
+\subsection{Narzędzia wspomagające - GitHub Projects}
+
+Głównym narzędziem wykorzystywanym do zarządzania cyklem życia projektu była platforma \textbf{GitHub}, a w szczególności usługa \textbf{GitHub Projects}. Wszystkie wymagania funkcjonalne zostały zdekomponowane na mniejsze, atomowe jednostki pracy (ang. \textit{Issues}), które następnie trafiły do rejestru zadań produktu (ang. \textit{Backlog}).
+
+Proces pracy został odzwierciedlony na cyfrowej tablicy Kanban składającej się z kolumn:
+\begin{itemize}
+    \item \textbf{Todo (Do zrobienia):} Zadania zaplanowane do realizacji, czekające w kolejce.
+    \item \textbf{In Progress (W toku):} Funkcjonalności będące w danej chwili implementowane.
+    \item \textbf{In Review (W weryfikacji):} Zadania ukończone programistycznie, przechodzące etap testów manualnych lub automatycznych.
+    \item \textbf{Done (Ukończone):} W pełni przetestowane i wdrożone moduły aplikacji.
+\end{itemize}
+
+Takie podejście umożliwiło precyzyjne śledzenie postępów prac oraz zapewniło transparentność całego procesu, co jest kluczowe przy realizacji złożonych systemów typu full-stack. Dzięki powiązaniu zadań z systemem kontroli wersji Git, każda zmiana w kodzie była bezpośrednio mapowana na konkretne wymaganie biznesowe zawarte w projekcie.

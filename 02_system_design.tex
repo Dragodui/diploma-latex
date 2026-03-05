@@ -51,6 +51,19 @@ Wymagania funkcjonalne określają, co system powinien robić. Zostały one podz
     \item \textbf{Wyniki:} Wizualizacja wyników ankiety w formie wykresu lub listy procentowej.
 \end{itemize}
 
+\subsection{Moduł Smart Home (IoT)}
+\begin{itemize}
+    \item \textbf{Integracja z Home Assistant:} Możliwość połączenia aplikacji z lokalnym serwerem automatyki domowej.
+    \item \textbf{Zarządzanie urządzeniami:} Wykrywanie (Discover) dostępnych urządzeń IoT (żarówki, gniazdek, sensory) i dodawanie ich do widoku konkretnych pomieszczeń w aplikacji.
+    \item \textbf{Zdalne sterowanie:} Możliwość zmiany stanu urządzeń (włączanie/wyłączanie) bezpośrednio z interfejsu mobilnego za pośrednictwem serwera Go pełniącego rolę mostu (Proxy).
+\end{itemize}
+
+\subsection{Moduł Powiadomień i czasu rzeczywistego}
+\begin{itemize}
+    \item \textbf{Powiadomienia systemowe:} Generowanie alertów o istotnych zdarzeniach (np. przypisanie nowego zadania, zbliżający się termin płatności rachunku, nowa ankieta).
+    \item \textbf{Synchronizacja WebSocket:} Automatyczne odświeżanie danych na wszystkich połączonych urządzeniach w momencie wystąpienia zmiany, bez konieczności manualnego przeładowywania widoku.
+\end{itemize}
+
 \section{Wymagania niefunkcjonalne}
 
 \begin{itemize}
@@ -76,6 +89,7 @@ System ,,Household Manager'' został zaprojektowany w oparciu o klasyczną, tró
     \item \textbf{Warstwa Prezentacji (Klient):} Aplikacja mobilna zaimplementowana w frameworku React Native. Odpowiada za interakcję z użytkownikiem, wyświetlanie danych oraz przesyłanie żądań do serwera. Klient jest "cienki" (ang. \textit{thin client}), co oznacza, że większość ciężkiej logiki biznesowej została przeniesiona na serwer.
     \item \textbf{Warstwa Logiki Biznesowej (Serwer):} Serwer REST API napisany w języku Go. Przetwarza żądania przychodzące z aplikacji mobilnej, wykonuje operacje na danych, autoryzuje użytkowników oraz zarządza komunikacją z zewnętrznymi usługami i bazami danych.
     \item \textbf{Warstwa Buforowania (Redis):} Szybka baza danych typu In-Memory wykorzystywana do przechowywania sesji użytkowników, tokenów autoryzacyjnych oraz wyników kosztownych zapytań. Zastosowanie Redis znacząco redukuje opóźnienia i odciąża główną bazę danych.
+    \item \textbf{Warstwa Monitorowania (Prometheus \& Grafana):} Scentralizowany system zbierania metryk wydajnościowych (czas odpowiedzi, zużycie zasobów) oraz ich wizualizacji na interaktywnych pulpitach nawigacyjnych, co pozwala na bieżące śledzenie kondycji systemu.
     \item \textbf{Warstwa Danych (PostgreSQL):} Relacyjna baza danych przechowująca ustrukturyzowane informacje o użytkownikach, wydatkach i harmonogramach domowych, zapewniając ich pełną integralność i spójność transakcyjną.
     \item \textbf{Magazyn Obiektowy (AWS S3):} Chmurowa usługa przechowywania obiektów wykorzystywana do składowania plików binarnych, takich jak zdjęcia paragonów do modułu OCR oraz zdjęcia profilowe. W bazie danych przechowywane są jedynie klucze obiektów, co optymalizuje wydajność systemu i ułatwia skalowanie.
 \end{itemize}
@@ -117,7 +131,7 @@ Kluczowe encje w systemie to:
 \begin{itemize}
     \item \textbf{users:} Przechowuje unikalne dane identyfikacyjne użytkowników (adres email, hash hasła) oraz dane profilowe, w tym link do awatara i status weryfikacji konta.
     \item \textbf{homes:} Reprezentuje pojedyncze gospodarstwo domowe. Posiada unikalny identyfikator, nazwę oraz unikalny kod zaproszenia (\textit{invite\_code}).
-    \item \textbf{home\_memberships:} Tabela asocjacyjna definiująca przynależność użytkownika do konkretnego domu wraz z przypisaną mu rolą oraz datą dołączenia.
+    \item \textbf{home\_memberships:} Tabela asocjacyjna definiująca przynależność użytkownika do konkretnego domu. Przechowuje ona rolę użytkownika (\textit{admin}, \textit{member}), datę dołączenia oraz status członkostwa (\textit{pending}, \textit{approved}), co pozwala na mechanizm moderacji nowych domowników przez administratora.
     \item \textbf{rooms:} Definiuje poszczególne pomieszczenia w obrębie danego domu (np. kuchnia, salon), co pozwala na precyzyjne przypisywanie zadań lub przedmiotów do lokalizacji.
     \item \textbf{tasks:} Tabela zadań zawierająca nazwę, opis, typ harmonogramu (\textit{schedule\_type}) oraz powiązanie z konkretnym domem i pomieszczeniem.
     \item \textbf{task\_assignments:} Tabela łącznikowa umożliwiająca przypisanie wielu użytkowników do jednego zadania wraz z rejestracją daty przypisania i statusu.
@@ -139,3 +153,48 @@ Zalety wykorzystania GORM w projekcie:
 \end{itemize}
 
 Wadą rozwiązań typu ORM może być narzut wydajnościowy przy bardzo skomplikowanych zapytaniach analitycznych, jednak w przypadku typowych operacji CRUD (Create, Read, Update, Delete) realizowanych w systemie Household Manager, korzyści wynikające z szybkości wytwarzania oprogramowania przeważają nad minimalnym spadkiem wydajności.
+
+\section{Projektowanie interfejsu użytkownika (UI/UX)}
+
+Kluczowym etapem przed rozpoczęciem prac programistycznych było zaprojektowanie interfejsu użytkownika (\textit{User Interface}) oraz doświadczeń użytkownika (\textit{User Experience}). Proces ten został zrealizowany przy użyciu profesjonalnego narzędzia do projektowania kolaboracyjnego --- \textbf{Figma}.
+
+\subsection{Metodologia projektowania}
+
+W projekcie zastosowano podejście \textit{Mobile-First}, skupiając się na optymalizacji interfejsu dla urządzeń przenośnych, gdzie przestrzeń ekranowa jest ograniczona. Proces projektowy podzielono na dwa główne etapy:
+
+\begin{enumerate}
+    \item \textbf{Makiety niskiej wierności (Low-Fidelity):} Szkice skupiające się na rozmieszczeniu elementów (architektura informacji) bez uwzględnienia kolorów i grafik. Pozwoliło to na szybką iterację nawigacji.
+    \item \textbf{Makiety wysokiej wierności (High-Fidelity):} Docelowe projekty graficzne zawierające finalną kolorystykę, typografię oraz ikony, stanowiące bezpośredni wzorzec dla implementacji w React Native.
+\end{enumerate}
+
+\subsection{Design System i identyfikacja wizualna}
+
+Na potrzeby aplikacji opracowano spójny system projektowy, który zapewnił jednolitość wizualną we wszystkich modułach systemu. Zamiast polegać na standardowych komponentach systemowych, zdecydowano się na autorską stylistykę dostosowaną do charakteru nowoczesnego gospodarstwa domowego.
+
+\textbf{Estetyka interfejsu:}
+Wybrano nowoczesną, ciemną kolorystykę z żywymi akcentami kolorystycznymi. Takie podejście nie tylko nadaje aplikacji profesjonalny wygląd, ale również poprawia komfort użytkowania w słabszym oświetleniu oraz pozwala na oszczędność energii na urządzeniach wyposażonych w ekrany typu OLED. Kolory akcentowe są wykorzystywane głównie do wyróżniania kluczowych akcji, statusów oraz elementów interaktywnych, co ułatwia szybką nawigację wzrokową.
+
+\textbf{Typografia:}
+Kluczowym elementem identyfikacji jest rodzina fontów \textbf{Manrope}. Jest to nowoczesny, geometryczny font bezszeryfowy, który charakteryzuje się doskonałą czytelnością przy różnych rozmiarach liter. W aplikacji zastosowano zróżnicowaną hierarchię grubości fontu (Bold, Semibold, Regular), aby w czytelny sposób oddzielić nagłówki od treści informacyjnych.
+
+\subsection{Podejście komponentowe (Atomic Design)}
+
+Projekt w Figmie został zbudowany w oparciu o hierarchię komponentów, co ułatwiło późniejszą implementację w kodzie. Każdy element interfejsu (przycisk, pole tekstowe, karta) został zdefiniowany jako reużywalny komponent z określonymi wariantami (np. stan aktywny, nieaktywny, ładowanie).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figma.png} % Zrzut ekranu z Figmy pokazujący wszystkie ekrany
+    \caption{Przegląd wszystkich ekranów interfejsu użytkownika zaprojektowanych w narzędziu Figma}
+    \label{fig:figma_screens}
+\end{figure}
+
+\subsection{Przepływy użytkownika (User Flows)}
+
+Ważnym aspektem projektowania było zdefiniowanie interakcji między ekranami. W Figmie stworzono interaktywny prototyp, który pozwolił na przetestowanie ścieżek krytycznych, takich jak:
+\begin{itemize}
+    \item Proces dodawania i rozliczania rachunku.
+    \item Dołączanie do domu za pomocą kodu zaproszenia.
+    \item Głosowanie w ankietach domowych.
+\end{itemize}
+
+Dzięki temu etapowi wyeliminowano błędy logiczne w nawigacji jeszcze przed napisaniem pierwszej linii kodu, co znacząco zredukowało czas potrzebny na poprawki w fazie implementacji.
