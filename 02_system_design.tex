@@ -18,7 +18,7 @@ Wymagania funkcjonalne określają, co system powinien robić. Zostały one podz
 \begin{itemize}
     \item \textbf{Tworzenie domu:} Użytkownik może utworzyć nową przestrzeń (Dom), nadając jej nazwę. Automatycznie staje się administratorem nowo utworzonego domu.
     \item \textbf{Zarządzanie członkami:} Możliwość zapraszania nowych osób poprzez unikalny, 6-cyfrowy kod domu. Administrator może usuwać członków z domu.
-    \item \textbf{Wiele domów:} Architektura systemu pozwala użytkownikowi na przynależność do wielu domów jednocześnie (np. "Mieszkanie Studenckie" i "Dom Rodzinny") oraz płynne przełączanie się między nimi w interfejsie aplikacji.
+    \item \textbf{Wiele domów:} Architektura systemu pozwala użytkownikowi na przynależność do wielu domów jednocześnie (np. ''Mieszkanie Studenckie'' i ''Dom Rodzinny'') oraz płynne przełączanie się między nimi w interfejsie aplikacji.
 \end{itemize}
 
 \subsection{Moduł Zadań (Tasks)}
@@ -46,7 +46,7 @@ Wymagania funkcjonalne określają, co system powinien robić. Zostały one podz
 
 \subsection{Moduł Ankiet (Polls)}
 \begin{itemize}
-    \item \textbf{Tworzenie ankiet:} Możliwość zadawania pytań dotyczących wspólnych spraw (np. "Co na obiad?", "Jakiego dostawcę internetu wybieramy?") i definiowania opcji odpowiedzi.
+    \item \textbf{Tworzenie ankiet:} Możliwość zadawania pytań dotyczących wspólnych spraw (np. ''Co na obiad?'', ''Jakiego dostawcę internetu wybieramy?'') i definiowania opcji odpowiedzi.
     \item \textbf{Głosowanie:} Anonimowe lub jawne oddawanie głosu przez domowników.
     \item \textbf{Wyniki:} Wizualizacja wyników ankiety w formie wykresu lub listy procentowej.
 \end{itemize}
@@ -81,12 +81,12 @@ Wymagania funkcjonalne określają, co system powinien robić. Zostały one podz
 
 \section{Projekt systemu}
 
-\subsection{Architektura}
+\subsection{Architektura Systemu}
 
 System ,,Household Manager'' został zaprojektowany w oparciu o klasyczną, trójwarstwową architekturę klient-serwer (ang. \textit{Three-Tier Architecture}), która zapewnia logiczną separację warstwy prezentacji, logiki biznesowej oraz danych. Takie podejście ułatwia niezależny rozwój poszczególnych komponentów oraz ich utrzymanie.
 
 \begin{itemize}
-    \item \textbf{Warstwa Prezentacji (Klient):} Aplikacja mobilna zaimplementowana w frameworku React Native. Odpowiada za interakcję z użytkownikiem, wyświetlanie danych oraz przesyłanie żądań do serwera. Klient jest "cienki" (ang. \textit{thin client}), co oznacza, że większość ciężkiej logiki biznesowej została przeniesiona na serwer.
+    \item \textbf{Warstwa Prezentacji (Klient):} Aplikacja mobilna zaimplementowana w frameworku React Native. Odpowiada za interakcję z użytkownikiem, wyświetlanie danych oraz przesyłanie żądań do serwera. Klient jest ''cienki'' (ang. \textit{thin client}), co oznacza, że większość ciężkiej logiki biznesowej została przeniesiona na serwer.
     \item \textbf{Warstwa Logiki Biznesowej (Serwer):} Serwer REST API napisany w języku Go. Przetwarza żądania przychodzące z aplikacji mobilnej, wykonuje operacje na danych, autoryzuje użytkowników oraz zarządza komunikacją z zewnętrznymi usługami i bazami danych.
     \item \textbf{Warstwa Buforowania (Redis):} Szybka baza danych typu In-Memory wykorzystywana do przechowywania sesji użytkowników, tokenów autoryzacyjnych oraz wyników kosztownych zapytań. Zastosowanie Redis znacząco redukuje opóźnienia i odciąża główną bazę danych.
     \item \textbf{Warstwa Monitorowania (Prometheus \& Grafana):} Scentralizowany system zbierania metryk wydajnościowych (czas odpowiedzi, zużycie zasobów) oraz ich wizualizacji na interaktywnych pulpitach nawigacyjnych, co pozwala na bieżące śledzenie kondycji systemu.
