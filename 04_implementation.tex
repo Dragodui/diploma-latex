@@ -327,7 +327,7 @@ Aby zapobiec nadużyciom i przeciążeniu lokalnej sieci IoT, endpointy sterują
 
 Aplikacja kliencka została zbudowana w oparciu o framework React Native z wykorzystaniem ekosystemu Expo. Struktura projektu została zaprojektowana w sposób modularny, co ułatwia zarządzanie stanem, nawigacją oraz reużywalnymi komponentami UI.
 
-\subsection{System routingu — Expo Router}
+\subsection{System routingu --- Expo Router}
 W projekcie wykorzystano \textbf{Expo Router}, który wprowadza do React Native system routingu oparty na strukturze plików (File-based routing). Pozwala to na intuicyjne definiowanie ścieżek oraz automatyczne generowanie typów dla nawigacji.
 
 Poniższy fragment przedstawia konfigurację głównego układu zakładek (Tabs), gdzie definiowany jest wygląd i zachowanie dolnego paska nawigacji.
@@ -371,7 +371,7 @@ Katalog \texttt{components/} zawiera reużywalne elementy interfejsu użytkownik
     \item \texttt{page-header.tsx}: Ujednolicony komponent nagłówka strony.
 \end{itemize}
 
-\subsection{Zarządzanie stanem — Stores}
+\subsection{Zarządzanie stanem --- Stores}
 W folderze \texttt{stores/} znajdują się definicje magazynów \textbf{Zustand}, które zarządzają globalnym stanem aplikacji. Przykładowo, \texttt{homeStore} odpowiada za synchronizację informacji o aktualnie wybranym gospodarstwie domowym między wszystkimi ekranami.
 
 \begin{lstlisting}[language=javascript, caption=Fragment magazynu stanu homeStore w Zustand, label=code:zustand_store]
@@ -396,7 +396,7 @@ export const useHomeStore = create<HomeState>()(
 );
 \end{lstlisting}
 
-\subsection{Warstwa logiki i narzędzi — Lib}
+\subsection{Warstwa logiki i narzędzi --- Lib}
 Katalog \texttt{lib/} pełni rolę warstwy pośredniczącej między interfejsem a usługami zewnętrznymi. Najważniejszym elementem tej warstwy jest autorski hook \texttt{useRealtimeRefresh}, który integruje UI z systemem powiadomień WebSocket.
 
 \begin{lstlisting}[language=javascript, caption=Hook useRealtimeRefresh integrujący WebSockety z Reactem, label=code:realtime_hook]

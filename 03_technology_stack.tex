@@ -3,7 +3,7 @@
 
 Wybór odpowiednich technologii jest kluczowym etapem procesu wytwarzania oprogramowania, mającym bezpośredni wpływ na wydajność, skalowalność, bezpieczeństwo oraz łatwość późniejszego utrzymania systemu (maintainability). Decyzje podjęte na tym etapie determinują szybkość procesu deweloperskiego oraz komfort pracy programistów. W niniejszym rozdziale przedstawiono szczegółową charakterystykę stosu technologicznego wykorzystanego do realizacji projektu ,,Household Manager''.
 
-\section{Backend — Go, GORM, PostgreSQL, Chi Router}
+\section{Backend --- Go, GORM, PostgreSQL, Chi Router}
 
 Warstwa serwerowa (backend) stanowi mózg aplikacji, odpowiadający za logikę biznesową, przetwarzanie danych oraz komunikację z bazą danych. Do jej implementacji wybrano język \textbf{Go} (znany również jako Golang).
 
@@ -26,20 +26,20 @@ Główne powody wyboru tej technologii to:
 
 W porównaniu do popularnego Node.js, Go oferuje lepszą wydajność obliczeniową (istotne np. przy przetwarzaniu obrazów w module OCR) oraz stabilniejszy ekosystem bibliotek standardowych.
 
-\subsection{Routing HTTP i oprogramowanie pośredniczące — Chi Router}
+\subsection{Routing HTTP i oprogramowanie pośredniczące --- Chi Router}
 
-W ekosystemie Go panuje tendencja do unikania rozbudowanych, monolitycznych frameworków na rzecz komponowania aplikacji z mniejszych, wyspecjalizowanych bibliotek. W projekcie wykorzystano \textbf{Chi Router} — lekki i niezwykle szybki router HTTP, w pełni kompatybilny ze standardową biblioteką \texttt{net/http}. Wykorzystano go do budowy przejrzystego systemu oprogramowania pośredniczącego (\textit{middleware}), który w sposób scentralizowany odpowiada za logowanie żądań, obsługę polityki CORS, limitowanie zapytań (Rate Limiting) oraz weryfikację tokenów JWT. Chi zapewnia wysoką czytelność kodu przy minimalnym narzucie wydajnościowym.
+W ekosystemie Go panuje tendencja do unikania rozbudowanych, monolitycznych frameworków na rzecz komponowania aplikacji z mniejszych, wyspecjalizowanych bibliotek. W projekcie wykorzystano \textbf{Chi Router} --- lekki i niezwykle szybki router HTTP, w pełni kompatybilny ze standardową biblioteką \texttt{net/http}. Wykorzystano go do budowy przejrzystego systemu oprogramowania pośredniczącego (\textit{middleware}), który w sposób scentralizowany odpowiada za logowanie żądań, obsługę polityki CORS, limitowanie zapytań (Rate Limiting) oraz weryfikację tokenów JWT. Chi zapewnia wysoką czytelność kodu przy minimalnym narzucie wydajnościowym.
 
-\subsection{Mapowanie obiektowo-relacyjne (ORM) — GORM}
+\subsection{Mapowanie obiektowo-relacyjne (ORM) --- GORM}
 
 Do zarządzania warstwą danych wykorzystano bibliotekę \textbf{GORM} (Go Object Relational Mapping). Umożliwiła ona bezpośrednie mapowanie struktur danych języka Go na relacje w bazie PostgreSQL. Narzędzie to zostało wykorzystane do automatyzacji standardowych operacji CRUD (Create, Read, Update, Delete), bezpiecznej obsługi złożonych relacji między encjami (np. relacje \textit{many-to-many} dla członków domu i przydzielonych zadań) oraz wygodnego zarządzania migracjami schematu bazy danych (podejście \textit{Code-First}). Zastosowanie GORM dodatkowo zabezpiecza system przed atakami typu SQL Injection poprzez automatyczną parametryzację zapytań.
 
-\subsection{Integracja sztucznej inteligencji i OCR — Google Gemini API}
+\subsection{Integracja sztucznej inteligencji i OCR --- Google Gemini API}
 
 Zamiast wdrażać klasyczne, podatne na błędy silniki OCR (ang. \textit{Optical Character Recognition}), w module finansowym systemu wykorzystano zaawansowany model multimodalny \textbf{Gemini 1.5 Flash} dostarczany przez Google. Pozwala on nie tylko na odczyt tekstu ze zdjęć paragonów, ale również na jego semantyczną analizę i automatyczną strukturyzację danych do pożądanego formatu JSON. 
 
 Do komunikacji z modelem wykorzystano natywny klient HTTP języka Go. Implementacja własnej usługi (\texttt{OCRService}) obejmuje bezpieczne przesyłanie obrazów zakodowanych w standardzie Base64 oraz autorski algorytm oceny pewności, który na bieżąco weryfikuje wiarygodność zwróconych przez AI danych (np. poprzez matematyczne porównanie sumy odczytanych pozycji z wykrytą kwotą całkowitą rachunku).
-\section{Frontend — React Native, Expo, TypeScript}
+\section{Frontend --- React Native, Expo, TypeScript}
 
 Warstwa kliencka (aplikacja mobilna) została zrealizowana w architekturze opartej na komponentach, co zapewnia modularność kodu i łatwość rozbudowy interfejsu użytkownika.
 
@@ -60,11 +60,11 @@ W projekcie zdecydowano się na użycie języka \textbf{TypeScript} jako nadzbio
 
 Projekt oparto na środowisku \textbf{Expo} – ekosystemie narzędzi ułatwiających proces wytwarzania aplikacji w React Native. Expo dostarcza ujednolicone API do funkcji systemowych (aparat, galeria zdjęć, system plików). Wykorzystano również \textbf{EAS (Expo Application Services)}, co umożliwiło generowanie plików instalacyjnych (\textit{.apk} dla systemu Android) w chmurze, bez konieczności posiadania wydajnej stacji roboczej skonfigurowanej pod natywny proces kompilacji.
 
-\subsection{Stylizacja interfejsu — NativeWind}
+\subsection{Stylizacja interfejsu --- NativeWind}
 
 Do budowy warstwy wizualnej wykorzystano bibliotekę \textbf{NativeWind}, która implementuje system klas narzędziowych \textbf{Tailwind CSS} w środowisku mobilnym. Podejście to (\textit{utility-first}) pozwala na szybkie stylowanie komponentów bezpośrednio w kodzie JSX, co drastycznie skraca czas tworzenia responsywnych widoków i zapewnia spójność wizualną całego systemu bez konieczności pisania zewnętrznych arkuszy stylów.
 
-\subsection{Nawigacja — React Navigation}
+\subsection{Nawigacja --- React Navigation}
 
 Zarządzanie przepływem ekranów zrealizowano przy pomocy biblioteki \textbf{React Navigation}. W systemie zaimplementowano dwa rodzaje nawigatorów:
 \begin{itemize}
@@ -72,15 +72,15 @@ Zarządzanie przepływem ekranów zrealizowano przy pomocy biblioteki \textbf{Re
 \item \textbf{Bottom Tab Navigator:} Stanowi główne menu aplikacji, umożliwiając szybkie przełączanie się między modułami: Dom, Zadania, Finanse i Profil.
 \end{itemize}
 
-\subsection{Zarządzanie stanem globalnym — Zustand}
+\subsection{Zarządzanie stanem globalnym --- Zustand}
 
 Do przechowywania danych dostępnych w całej aplikacji (np. informacja o zalogowanym użytkowniku, identyfikator wybranego domu) wybrano bibliotekę \textbf{Zustand}. Jest to rozwiązanie minimalistyczne, oparte na \textit{hookach}, które oferuje wysoką wydajność przy znacznie mniejszej złożoności niż tradycyjne biblioteki typu Redux. Pozwala to na uniknięcie problemu \textit{prop drilling} (przekazywania danych przez wiele poziomów komponentów).
 
-\subsection{Komunikacja sieciowa — Axios}
+\subsection{Komunikacja sieciowa --- Axios}
 
 Interakcja z backendem realizowana jest za pomocą klienta \textbf{Axios}. Biblioteka ta wspiera mechanizm \textit{interceptors}, który w projekcie został wykorzystany do automatycznego wstrzykiwania tokena JWT do nagłówków każdego żądania HTTP oraz do globalnej obsługi błędów sieciowych (np. automatyczne wylogowanie w przypadku wygaśnięcia sesji).
 
-\subsection{Uwierzytelnianie i bezpieczeństwo — Expo Secure Store}
+\subsection{Uwierzytelnianie i bezpieczeństwo --- Expo Secure Store}
 
 Ze względu na wrażliwy charakter danych dostępowych, w projekcie zrezygnowano z domyślnego \textit{AsyncStorage} na rzecz \textbf{Expo Secure Store}. Biblioteka ta zapewnia szyfrowane przechowywanie par klucz-wartość na poziomie systemowym (Keychain na iOS, SharedPreferences z szyfrowaniem na Androidzie), co gwarantuje, że tokeny autoryzacyjne użytkownika są chronione przed niepowołanym dostępem innych aplikacji.
 
@@ -110,13 +110,13 @@ Wybrano REST zamiast GraphQL ze względu na prostotę implementacji, łatwość 
 
 Aby zapewnić niezawodność, łatwość wdrażania oraz możliwość bieżącego śledzenia stanu systemu, projekt został wzbogacony o nowoczesne narzędzia z zakresu DevOps oraz telemetrii.
 
-\subsection{Konteneryzacja — Docker i Docker Compose}
+\subsection{Konteneryzacja --- Docker i Docker Compose}
 W celu ujednolicenia środowiska deweloperskiego i produkcyjnego, cały system został skonteneryzowany przy użyciu platformy \textbf{Docker}. Aplikacja backendowa, baza danych PostgreSQL, pamięć podręczna Redis oraz narzędzia monitorujące zostały zamknięte w izolowanych kontenerach. 
 Wykorzystanie narzędzia \textbf{Docker Compose} pozwoliło na zdefiniowanie całej infrastruktury w jednym pliku konfiguracyjnym (IaC - \textit{Infrastructure as Code}). Dzięki temu uruchomienie w pełni funkcjonalnego systemu wraz ze wszystkimi zależnościami sprowadza się do wykonania jednego polecenia w terminalu. Rozwiązuje to klasyczny problem niezgodności środowisk i znacząco ułatwia skalowanie aplikacji.
 
 
 
-\subsection{Ciągła integracja i dostarczanie (CI/CD) — GitHub Actions}
+\subsection{Ciągła integracja i dostarczanie (CI/CD) --- GitHub Actions}
 Proces weryfikacji jakości kodu oraz budowania artefaktów został zautomatyzowany przy użyciu \textbf{GitHub Actions}. W repozytorium projektu skonfigurowano tzw. \textit{workflows}, które uruchamiają się automatycznie przy każdej próbie wdrożenia zmian do głównej gałęzi kodu. 
 Zaimplementowane potoki (pipelines) odpowiadają za:
 \begin{itemize}
@@ -126,7 +126,7 @@ Zaimplementowane potoki (pipelines) odpowiadają za:
     \item Automatyczne budowanie obrazów Docker w celu przygotowania aplikacji do wdrożenia.
 \end{itemize}
 
-\subsection{Monitorowanie i telemetria — Prometheus i Grafana}
+\subsection{Monitorowanie i telemetria --- Prometheus i Grafana}
 Kluczowym aspektem utrzymania systemów rozproszonych jest ich obserwacja (ang. \textit{observability}). Do zbierania metryk wykorzystano system \textbf{Prometheus}, który cyklicznie pobiera dane z serwera Go (poprzez wystawiony, zabezpieczony punkt końcowy \texttt{/metrics}). 
 Zgromadzone dane, takie jak czas odpowiedzi serwera, liczba zapytań HTTP czy obciążenie pamięci, są następnie wizualizowane za pomocą platformy \textbf{Grafana}. Pozwala to na tworzenie interaktywnych pulpitów nawigacyjnych (dashboards), które w czasie rzeczywistym obrazują kondycję systemu i ułatwiają szybką diagnozę potencjalnych wąskich gardeł wydajnościowych.
 
@@ -141,13 +141,13 @@ Zgromadzone dane, takie jak czas odpowiedzi serwera, liczba zapytań HTTP czy ob
 
 \section{Narzędzia wspierające i usługi chmurowe}
 
-\subsection{Przechowywanie plików — Amazon S3 (AWS)}
+\subsection{Przechowywanie plików --- Amazon S3 (AWS)}
 Ze względu na ograniczenia wydajnościowe relacyjnych baz danych w kontekście składowania dużych plików binarnych (BLOB), do przechowywania zdjęć awatarów oraz skanów paragonów dla modułu OCR wykorzystano usługę chmurową \textbf{Amazon S3} (Simple Storage Service). Komunikacja z usługą AWS realizowana jest bezpośrednio z poziomu serwera Go przy użyciu oficjalnego pakietu \texttt{aws-sdk-go-v2}. Dzięki temu rozwiązaniu baza PostgreSQL przechowuje jedynie lekkie adresy URL, co optymalizuje czas wykonywania zapytań i zmniejsza koszty hostingu bazy danych.
 
-\subsection{Komunikacja w czasie rzeczywistym — WebSockets}
+\subsection{Komunikacja w czasie rzeczywistym --- WebSockets}
 Ponieważ aplikacja wspomaga współdzielenie życia domowego, kluczowe było dostarczanie informacji o zmianach (np. przypisanie zadania, opłacenie rachunku) bez konieczności odświeżania ekranu przez użytkownika. Do realizacji tego zadania wykorzystano protokół \textbf{WebSocket} (za pomocą biblioteki \texttt{gorilla/websocket}). Zapewnia on stałe, dwukierunkowe połączenie między klientem mobilnym a serwerem, minimalizując opóźnienia i narzut sieciowy w porównaniu do klasycznego mechanizmu \textit{HTTP Polling}.
 
-\subsection{Automatyczna dokumentacja API — Swagger (OpenAPI)}
+\subsection{Automatyczna dokumentacja API --- Swagger (OpenAPI)}
 W celu ułatwienia procesu deweloperskiego oraz testowania kontraktów między aplikacją mobilną a serwerem, wykorzystano narzędzie \textbf{Swaggo}. Analizuje ono komentarze w kodzie źródłowym serwera Go i automatycznie generuje interaktywną dokumentację w standardzie \textbf{OpenAPI (Swagger UI)}. Pozwala to programiście na przeglądanie dostępnych punktów końcowych, wymaganych struktur danych oraz wykonywanie testowych zapytań bezpośrednio z poziomu przeglądarki internetowej.
 
 \section{Testy jednostkowe i integracyjne w Go}
